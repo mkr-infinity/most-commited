@@ -1,21 +1,21 @@
-# Most Committed
+# 🚀 Most Committed
 
-Goal: become one of the most committed repos on GitHub.
+I made this repo to chase one simple goal: become one of the most committed repos on GitHub 🏆
 
-## How It Works
+Every commit has:
 
-- `generate_commits.py` creates empty commits with emoji messages.
-- GitHub Actions runs it automatically every 6 hours.
-- Commits use `mohammadkaifraja2@gmail.com`, so they count if that email is verified on GitHub.
+- 🔢 an increasing number
+- 😄 a different emoji
+- ✨ a clean commit message
 
-## Run
+GitHub Actions runs it automatically every 6 hours with `50000` commits per batch.
 
-Go to **Actions** → **Generate Commits** → **Run workflow**.
+## 👤 Created By
 
-Automated batch size: `50000` commits per run.
+Made by **Mohammad Kaif Raja**.
 
-Manual runs are capped at `50000` commits.
+Credit to [virejdasani/Commited](https://github.com/virejdasani/Commited) for the original inspiration.
 
-## Note
+## ⚠️ Note
 
-Do not push millions of commits at once. Use batches to avoid GitHub account or repository problems.
+I am growing this in batches so the repo and account stay safe.
