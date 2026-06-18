@@ -1,0 +1,67 @@
+name: Generate Commits
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+    - cron: "30 */3 * * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      count:
+        description: "Number of commits to generate"
+        required: true
+        default: "10000"
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "most-commited-bot"
+          git config user.email "bot@most-commited.dev"
+          git config core.quotepath false
+
+      - name: Generate commits
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            COUNT=${{ github.event.inputs.count }}
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            COUNT=10000
+          else
+            COUNT=5000
+          fi
+          echo "Generating $COUNT commits..."
+          TOTAL=$(bash generate_commits.sh "$COUNT")
+          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
+        id: generate
+
+      - name: Push commits
+        run: |
+          TOTAL=${{ steps.generate.outputs.total }}
+          git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          git push origin "${{ github.ref_name }}" --force
+          echo "✅ Pushed! Total commits: $TOTAL"
+
+      - name: Summary
+        run: |
+          TOTAL=${{ steps.generate.outputs.total }}
+          echo "## 📊 Commit Run Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Total Commits** | $TOTAL |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Run** | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Trigger** | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
