@@ -16,6 +16,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: commit-generator-main
+  cancel-in-progress: false
+
 jobs:
   generate:
     runs-on: ubuntu-latest
@@ -43,7 +47,8 @@ jobs:
             COUNT=5000
           fi
           echo "Generating $COUNT commits..."
-          TOTAL=$(python3 generate_commits.py "$COUNT")
+          python3 generate_commits.py "$COUNT" > total.txt
+          TOTAL=$(tail -n 1 total.txt)
           echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
         id: generate
 
