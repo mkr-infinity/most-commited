@@ -5,7 +5,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/status-grinding-brightgreen?style=for-the-badge" alt="status" />
   <img src="https://img.shields.io/badge/batches-50K_commits-blue?style=for-the-badge" alt="batch size" />
-  <img src="https://img.shields.io/badge/made_by-Mohammad_Kaif_Raja-purple?style=for-the-badge" alt="made by" />
+  <img src="https://img.shields.io/badge/made_by-mkr_infinity-purple?style=for-the-badge" alt="made by" />
 </p>
 
 ## ✨ What This Does
