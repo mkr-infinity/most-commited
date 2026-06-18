@@ -3,14 +3,12 @@ name: Generate Commits
 on:
   schedule:
     - cron: "0 */6 * * *"
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       count:
         description: "Number of commits to generate"
         required: true
-        default: "10000"
+        default: "1000"
         type: string
 
 permissions:
@@ -41,9 +39,11 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             COUNT=${{ github.event.inputs.count }}
-          elif [ "${{ github.event_name }}" = "schedule" ]; then
-            COUNT=10000
           else
+            COUNT=1000
+          fi
+          if [ "$COUNT" -gt 5000 ]; then
+            echo "Requested $COUNT commits, capped to 5000 to reduce account/repo risk."
             COUNT=5000
           fi
           echo "Generating $COUNT commits..."

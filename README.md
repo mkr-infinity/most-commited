@@ -1,121 +1,19 @@
-# 🏆 Most Committed 🏆
+# Most Committed
 
-> The most committed repository on GitHub — relentless, automated, unstoppable.
+Goal: become one of the most committed repos on GitHub.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/commits-0-blue?style=for-the-badge" alt="commits"/>
-  <img src="https://img.shields.io/badge/mission-most_committed-red?style=for-the-badge" alt="mission"/>
-  <img src="https://img.shields.io/badge/status-unstoppable-brightgreen?style=for-the-badge" alt="status"/>
-</p>
+## How It Works
 
----
+- `generate_commits.py` creates empty commits with emoji messages.
+- GitHub Actions can run it in safe batches.
+- Commits use `mohammadkaifraja2@gmail.com`, so they count if that email is verified on GitHub.
 
-## 🚀 The Mission
+## Run
 
-One commit at a time. Every commit is unique, every message has a soul, and every emoji tells a story. This repo exists to push the boundaries of what automation + dedication can achieve.
+Go to **Actions** → **Generate Commits** → **Run workflow**.
 
----
+Recommended batch size: `1000` to `5000` commits per run.
 
-## ✨ How It Works
+## Note
 
-| Component | Role |
-|-----------|------|
-| `generate_commits.py` | 🐍 Creates beautifully crafted commits with rotating emojis |
-| `.github/workflows/commit.yml` | ⏰ Runs on schedule + on-demand to generate more commits |
-| `src/commits.txt` | 📜 The living ledger — every commit adds a line |
-
-Each commit gets:
-- ✅ A unique emoji (rotating through **100+ emojis**)
-- ✅ An incrementing commit number
-- ✅ A randomized beautiful message template
-- ✅ A timestamped entry in the commit ledger
-
----
-
-## 🎨 Emoji Gallery
-
-```
-🚀 ✨ 🔥 🌈 🎨 💎 ⚡ 💫 🌟 ⭐ 🎯 🎪 🎭 🎬 🎤 🎧 🎲 🎳
-💪 🤖 👾 🎮 🕹️ 💻 🖥️ 📱 🔧 🛠️ ⚙️ 🔩 🧰 📦 🎁 🏆 🥇
-💯 💥 🌊 🌀 🌙 ☀️ 🌍 🌋 🏔️ 🗻 🌴 🌲 🌳 🌿 🍀 🌸 🌺
-🦋 🐞 🐛 🦄 🐉 🦅 🦁 🐯 🐺 🦊 🚴 🏋️ 🤸 🤹 🎪 🎨 🎭
-```
-
-Every commit picks the next emoji in the cycle — no two consecutive commits share the same one.
-
----
-
-## 📊 Progress Tracker
-
-<!-- COMMIT_PROGRESS_START -->
-
-<p align="center">
-  <b>Current Commit Count: <span id="commit-count">0</span></b>
-</p>
-
-| Milestone | Status |
-|-----------|--------|
-| 🥇 1,000 commits | ❌ |
-| 🥇 10,000 commits | ❌ |
-| 🥇 100,000 commits | ❌ |
-| 🥇 1,000,000 commits | ❌ |
-| 🥇 10,000,000 commits | ❌ |
-| 🥇 50,000,000+ commits | ❌ |
-
-<!-- COMMIT_PROGRESS_END -->
-
----
-
-## 🛠️ Running Locally
-
-```bash
-# Generate 10 commits
-python3 generate_commits.py 10
-
-# Generate 1000 commits
-python3 generate_commits.py 1000
-
-# Generate as many as you want
-python3 generate_commits.py 100000
-```
-
----
-
-## 🤖 GitHub Actions
-
-The workflow runs automatically **multiple times daily** to generate more commits. You can also trigger it manually:
-
-1. Go to **Actions** → **Generate Commits** → **Run workflow**
-2. Set the count (e.g., `10000`)
-3. Watch the commits roll in 🚀
-
----
-
-## 📜 Commit Message Examples
-
-```
-🚀 commit #42 — another step forward!        🚀
-🔥 commit #69 — on the grind!                 🔥
-🌈 commit #100 — making history!              🌈
-💎 commit #256 — building legacy!             💎
-🌟 commit #1000 — greatness!                  🌟
-🦄 commit #4042 — no days off!                🦄
-🐉 commit #10000 — count it!                  🐉
-```
-
----
-
-## 🌟 The Dream
-
-> **1 Million commits. 10 Million. 50 Million.** The most committed repository in GitHub history.
-
-Is it insane? Maybe.  
-Is it possible? Let's find out. 🚀
-
----
-
-<p align="center">
-  <b>Made with ❤️ and unreasonable ambition</b>
-  <br>
-  <sub>one commit at a time</sub>
-</p>
+Do not push millions of commits at once. Use batches to avoid GitHub account or repository problems.
