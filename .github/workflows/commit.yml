@@ -8,7 +8,7 @@ on:
       count:
         description: "Number of commits to generate"
         required: true
-        default: "1000"
+        default: "50000"
         type: string
 
 permissions:
@@ -40,11 +40,11 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             COUNT=${{ github.event.inputs.count }}
           else
-            COUNT=1000
+            COUNT=50000
           fi
-          if [ "$COUNT" -gt 5000 ]; then
-            echo "Requested $COUNT commits, capped to 5000 to reduce account/repo risk."
-            COUNT=5000
+          if [ "$COUNT" -gt 50000 ]; then
+            echo "Requested $COUNT commits, capped to 50000."
+            COUNT=50000
           fi
           echo "Generating $COUNT commits..."
           python3 generate_commits.py "$COUNT" > total.txt
