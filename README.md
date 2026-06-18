@@ -20,7 +20,7 @@ One commit at a time. Every commit is unique, every message has a soul, and ever
 
 | Component | Role |
 |-----------|------|
-| `generate_commits.sh` | 🎯 Creates beautifully crafted commits with rotating emojis |
+| `generate_commits.py` | 🐍 Creates beautifully crafted commits with rotating emojis |
 | `.github/workflows/commit.yml` | ⏰ Runs on schedule + on-demand to generate more commits |
 | `src/commits.txt` | 📜 The living ledger — every commit adds a line |
 
@@ -70,13 +70,13 @@ Every commit picks the next emoji in the cycle — no two consecutive commits sh
 
 ```bash
 # Generate 10 commits
-bash generate_commits.sh 10
+python3 generate_commits.py 10
 
 # Generate 1000 commits
-bash generate_commits.sh 1000
+python3 generate_commits.py 1000
 
 # Generate as many as you want
-bash generate_commits.sh 100000
+python3 generate_commits.py 100000
 ```
 
 ---
