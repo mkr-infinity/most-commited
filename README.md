@@ -1,21 +1,34 @@
 # 🚀 Most Committed
 
-I made this repo to chase one simple goal: become one of the most committed repos on GitHub 🏆
+> My mission: build one of the most committed repositories on GitHub 🏆
 
-Every commit has:
+<p align="center">
+  <img src="https://img.shields.io/badge/status-grinding-brightgreen?style=for-the-badge" alt="status" />
+  <img src="https://img.shields.io/badge/batches-50K_commits-blue?style=for-the-badge" alt="batch size" />
+  <img src="https://img.shields.io/badge/made_by-Mohammad_Kaif_Raja-purple?style=for-the-badge" alt="made by" />
+</p>
 
-- 🔢 an increasing number
-- 😄 a different emoji
-- ✨ a clean commit message
+## ✨ What This Does
 
-GitHub Actions runs it automatically every 6 hours with `50000` commits per batch.
+- 🔢 Creates numbered commits
+- 😄 Adds emoji commit messages
+- ⚙️ Runs automatically with GitHub Actions
+- 🧱 Grows the repo safely in batches
 
-## 👤 Created By
+## ▶️ How To Use
 
-Made by **Mohammad Kaif Raja**.
+1. Open the **Actions** tab.
+2. Select **Generate Commits**.
+3. Click **Run workflow**.
+4. Enter a commit count, up to `50000`.
+5. Run it and watch the commits grow 🚀
 
-Credit to [virejdasani/Commited](https://github.com/virejdasani/Commited) for the original inspiration.
+The repo also runs automatically every 6 hours with `50000` commits per batch.
 
-## ⚠️ Note
+## 👑 Created By
 
-I am growing this in batches so the repo and account stay safe.
+This project is created and maintained by **Mohammad Kaif Raja**.
+
+## ⚠️ Safe Growth
+
+I am growing this repo in batches so my GitHub account and repository stay safe.
