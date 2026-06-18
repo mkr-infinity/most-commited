@@ -27,7 +27,7 @@ The repo also runs automatically every 6 hours with `50000` commits per batch.
 
 ## 👑 Created By
 
-This project is created and maintained by **Mohammad Kaif Raja**.
+This project is created and maintained by **mkr-infinity**.
 
 ## ⚠️ Safe Growth
 
