@@ -1223,8 +1223,47 @@ def handle_keyboard_interrupt() -> None:
 # ═════════════════════════════════════════════════════════════════════════ #
 
 
+def parse_cli_args() -> dict:
+    """Parse command-line arguments for non-interactive (CI) mode.
+
+    Supports:
+        --count N / -c N   Number of commits to generate
+        --signed / -s       Sign commits (default: unsigned)
+        --push / -p         Auto-push to remote after generation
+
+    Returns dict with keys: count, signed, push, ci_mode.
+    """
+    args = {"count": 0, "signed": False, "push": False, "ci_mode": False}
+    argv = sys.argv[1:]
+    i = 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg in ("--count", "-c") and i + 1 < len(argv):
+            try:
+                args["count"] = int(argv[i + 1])
+            except ValueError:
+                pass
+            i += 2
+        elif arg in ("--signed", "-s"):
+            args["signed"] = True
+            i += 1
+        elif arg in ("--push", "-p"):
+            args["push"] = True
+            i += 1
+        elif arg in ("--ci", "--non-interactive"):
+            args["ci_mode"] = True
+            i += 1
+        else:
+            i += 1
+    if args["count"] > 0:
+        args["ci_mode"] = True
+    return args
+
+
 def main() -> None:
     """Main entry point for Bulk Commit Generator."""
+    cli = parse_cli_args()
+
     # ── Display Banner ────────────────────────────────────────────────────
     print_banner()
 
@@ -1253,6 +1292,10 @@ def main() -> None:
     commit_count = 0
 
     if not repo_root:
+        if cli["ci_mode"]:
+            console.print("[error]\u274c No Git repository detected in CI mode.[/error]")
+            sys.exit(1)
+
         console.print("")
         panel = Panel(
             Text.from_markup(
@@ -1357,14 +1400,17 @@ def main() -> None:
     console.print(rules_panel)
     console.print("")
 
-    try:
-        desired_count = IntPrompt.ask(
-            "[bold yellow]How many commits would you like to generate?[/bold yellow]",
-            default=10,
-        )
-    except KeyboardInterrupt:
-        handle_keyboard_interrupt()
-        sys.exit(0)
+    if cli["ci_mode"] and cli["count"] > 0:
+        desired_count = cli["count"]
+    else:
+        try:
+            desired_count = IntPrompt.ask(
+                "[bold yellow]How many commits would you like to generate?[/bold yellow]",
+                default=10,
+            )
+        except KeyboardInterrupt:
+            handle_keyboard_interrupt()
+            sys.exit(0)
 
     if desired_count <= 0:
         console.print("[info]\U0001f44b Exiting. No commits generated.[/info]")
@@ -1388,17 +1434,20 @@ def main() -> None:
     console.print(mode_panel)
     console.print("")
 
-    try:
-        mode_choice = Prompt.ask(
-            "[bold yellow]Select commit mode[/bold yellow]",
-            choices=["1", "2"],
-            default="2",
-        )
-    except KeyboardInterrupt:
-        handle_keyboard_interrupt()
-        sys.exit(0)
+    if cli["ci_mode"]:
+        signed = cli["signed"]
+    else:
+        try:
+            mode_choice = Prompt.ask(
+                "[bold yellow]Select commit mode[/bold yellow]",
+                choices=["1", "2"],
+                default="2",
+            )
+        except KeyboardInterrupt:
+            handle_keyboard_interrupt()
+            sys.exit(0)
 
-    signed = mode_choice == "1"
+        signed = mode_choice == "1"
 
     # ── Signing Verification ─────────────────────────────────────────────
     if signed:
@@ -1456,18 +1505,21 @@ def main() -> None:
     console.print(folder_panel)
     console.print("")
 
-    try:
-        target_folder = Prompt.ask(
-            "[bold yellow]Enter target folder[/bold yellow]",
-            default=DEFAULT_FOLDER,
-        )
-    except KeyboardInterrupt:
-        handle_keyboard_interrupt()
-        sys.exit(0)
-
-    target_folder = target_folder.strip().rstrip("/").lstrip("/")
-    if not target_folder:
+    if cli["ci_mode"]:
         target_folder = DEFAULT_FOLDER
+    else:
+        try:
+            target_folder = Prompt.ask(
+                "[bold yellow]Enter target folder[/bold yellow]",
+                default=DEFAULT_FOLDER,
+            )
+        except KeyboardInterrupt:
+            handle_keyboard_interrupt()
+            sys.exit(0)
+
+        target_folder = target_folder.strip().rstrip("/").lstrip("/")
+        if not target_folder:
+            target_folder = DEFAULT_FOLDER
 
     # ── Pre-Generation Summary ────────────────────────────────────────────
     console.print("")
@@ -1498,18 +1550,21 @@ def main() -> None:
     console.print("")
 
     # ── Confirmation ──────────────────────────────────────────────────────
-    try:
-        proceed = Confirm.ask(
-            "[bold yellow]\u2753 Proceed with generation?[/bold yellow]",
-            default=True,
-        )
-    except KeyboardInterrupt:
-        handle_keyboard_interrupt()
-        sys.exit(0)
+    if cli["ci_mode"]:
+        proceed = True
+    else:
+        try:
+            proceed = Confirm.ask(
+                "[bold yellow]\u2753 Proceed with generation?[/bold yellow]",
+                default=True,
+            )
+        except KeyboardInterrupt:
+            handle_keyboard_interrupt()
+            sys.exit(0)
 
-    if not proceed:
-        console.print("[info]\U0001f44b Generation cancelled by user.[/info]")
-        sys.exit(0)
+        if not proceed:
+            console.print("[info]\U0001f44b Generation cancelled by user.[/info]")
+            sys.exit(0)
 
     # ── Generate Commits ─────────────────────────────────────────────────
     console.print("")
@@ -1595,13 +1650,16 @@ def main() -> None:
     console.print(push_panel)
     console.print("")
 
-    try:
-        push_choice = Confirm.ask(
-            "[bold yellow]\U0001f504 Push commits to GitHub?[/bold yellow]",
-            default=False,
-        )
-    except KeyboardInterrupt:
-        push_choice = False
+    if cli["ci_mode"]:
+        push_choice = cli["push"]
+    else:
+        try:
+            push_choice = Confirm.ask(
+                "[bold yellow]\U0001f504 Push commits to GitHub?[/bold yellow]",
+                default=False,
+            )
+        except KeyboardInterrupt:
+            push_choice = False
 
     if push_choice:
         console.print("")

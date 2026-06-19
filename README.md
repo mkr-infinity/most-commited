@@ -104,31 +104,24 @@ Optionally push to GitHub after generation.
 
 <br>
 
-### 1. Clone this repo
+### Option A — Run locally
 
 ```bash
 git clone https://github.com/mkr-infinity/most-commited.git
 cd most-commited
-```
-
-### 2. Run the script
-
-```bash
 python3 bulk-commit-generator.py
 ```
 
-### 3. Follow the prompts
+Follow the prompts — enter commit count, choose to push, done.
 
-```bash
-$ python3 bulk-commit-generator.py
+### Option B — GitHub Actions
 
-📊 Current commit count: 376,954
-🔢 How many commits to generate? 1000
-📝 Sign commits? (y/n): n
-📤 Push to GitHub? (y/n): y
-```
+1. Go to **Actions** → **Generate Commits**
+2. Click **Run workflow**
+3. Enter commit count (e.g. `1000`)
+4. Click **Run**
 
-That's it — commits start rolling in.
+The script runs on GitHub's servers and pushes automatically.
 
 <br>
 
@@ -136,14 +129,24 @@ That's it — commits start rolling in.
 
 <br>
 
-## ⚙️ Options
+## ⚙️ CLI usage (advanced)
 
-| | |
+```bash
+# Non-interactive — no prompts
+python3 bulk-commit-generator.py --count 1000 --push
+
+# With signed commits
+python3 bulk-commit-generator.py --count 500 --signed --push
+
+# Just generate, no push
+python3 bulk-commit-generator.py --count 100
+```
+
+| Flag | Description |
 |---|---|
-| **Commit count** | How many commits to create (start with `100`) |
-| **Sign commits** | GPG-sign each commit (`y`/`n`) |
-| **Push** | Auto-push to GitHub after (`y`/`n`) |
-| **Target folder** | Where activity logs are saved (`src`) |
+| `--count N` | Number of commits to generate |
+| `--signed` | GPG-sign each commit |
+| `--push` | Push to remote after generation |
 
 <br>
 
