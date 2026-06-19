@@ -4,11 +4,13 @@
 
 **Automated commit generator — build your GitHub commit history with emojis, style, and consistency.**
 
-<p>
-  <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mkr-infinity/most-commited/main/badge.json" alt="commits">
-  <img src="https://img.shields.io/badge/python-3.8%2B-blue?style=flat-square&logo=python&logoColor=white" alt="python">
-  <img src="https://img.shields.io/github/license/mkr-infinity/most-commited?style=flat-square" alt="license">
-</p>
+<br>
+
+![Commits](https://img.shields.io/endpoint?style=for-the-badge&url=https://raw.githubusercontent.com/mkr-infinity/most-commited/main/badge.json)
+![Python](https://img.shields.io/badge/python-3.8%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Script](https://img.shields.io/badge/script-bulk_commit_generator-7B2FF7?style=for-the-badge)
+
+<br>
 
 </div>
 
@@ -16,7 +18,7 @@
 
 ## 📌 About
 
-This project generates real Git commits automatically. Each commit includes a unique number, a randomized emoji, and a clean commit message. The goal is simple — grow the commit count safely and consistently.
+This project generates real Git commits automatically. Each commit includes a unique number, a randomized emoji, and a clean commit message. The goal is to grow the commit count safely and consistently.
 
 Created by **mkr-infinity** to push the limits of what's possible with automation on GitHub.
 
@@ -37,32 +39,20 @@ Created by **mkr-infinity** to push the limits of what's possible with automatio
 
 ## 🚀 Getting Started
 
-### Prerequisites
-
-- Python 3.8 or higher
-- Git installed and configured
-- A GitHub repository (this one)
-
-### Installation
+**Prerequisites:** Python 3.8+, Git, and a GitHub repository.
 
 ```bash
+# Clone the repo
 git clone https://github.com/mkr-infinity/most-commited.git
 cd most-commited
-```
 
-### Usage
-
-```bash
+# Run the generator
 python3 bulk-commit-generator.py
 ```
 
-The script will guide you through an interactive setup:
-1. Enter the number of commits to generate
-2. Choose whether to sign commits (optional)
-3. Confirm and watch the commits roll in
-4. Optinally push to GitHub
+The script guides you through every step — how many commits, whether to sign, and whether to push.
 
-### Example
+**Example:**
 
 ```bash
 $ python3 bulk-commit-generator.py
@@ -77,23 +67,22 @@ Push to GitHub? [y/N]: y
 | Setting | Description | Default |
 |---|---|---|
 | Commit count | Number of commits to generate | Prompted |
-| Sign commits | GPG-sign each commit (requires GPG setup) | No |
-| Push | Automatically push to remote after generation | No |
+| Sign commits | GPG-sign each commit | No |
+| Push | Auto-push to remote after generation | No |
 | Target folder | Folder for activity log files | `src` |
 
 ---
 
 ## 📋 Notes
 
-- Keep batch sizes under **5,000** on low-RAM machines.
+- Keep batches under **5,000** on low-RAM machines.
 - Commits appear on your GitHub profile if your commit email is verified.
-- The repository uses `git commit --allow-empty` style commits with real file tracking.
 
 ---
 
 ## 👤 Author
 
-**mkr-infinity** — [GitHub Profile](https://github.com/mkr-infinity)
+**mkr-infinity** — [github.com/mkr-infinity](https://github.com/mkr-infinity)
 
 ---
 
@@ -102,7 +91,6 @@ Push to GitHub? [y/N]: y
 ⭐ **Star this repository if you find it useful**
 
 <br>
-
-<sub>Copyright © 2026 Mohammad Kaif Raja. All rights reserved.</sub>
+<sub>Copyright © 2026 Mohammad Kaif Raja</sub>
 
 </div>
