@@ -116,12 +116,24 @@ Follow the prompts — enter commit count, choose to push, done.
 
 ### Option B — GitHub Actions
 
+**Step 1 — Set up secrets (one time)**
+
+Go to your repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+
+| Secret | Value |
+|---|---|
+| `GIT_USER_NAME` | Your GitHub username |
+| `GIT_USER_EMAIL` | Your verified GitHub email |
+
+**Step 2 — Run the workflow**
+
 1. Go to **Actions** → **Generate Commits**
 2. Click **Run workflow**
 3. Enter commit count (e.g. `1000`)
-4. Click **Run**
+4. Toggle push (`true` / `false`)
+5. Click **Run**
 
-The script runs on GitHub's servers and pushes automatically.
+The script runs on GitHub's servers using your secrets for author identity.
 
 <br>
 
