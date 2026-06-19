@@ -41,13 +41,5 @@ jobs:
         run: |
           python3 bulk-commit-generator.py --count ${{ github.event.inputs.count }} --name "${{ secrets.GIT_USER_NAME }}" --email "${{ secrets.GIT_USER_EMAIL }}"
 
-      - name: Summary
-        run: |
-          TOTAL=$(git rev-list --count HEAD)
-          echo "## 📊 Commit Run Complete" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Commits Generated** | ${{ github.event.inputs.count }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Total Commits** | $TOTAL |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Run** | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+      - name: Push to GitHub
+        run: git push origin main
