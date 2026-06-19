@@ -9,7 +9,9 @@
 <br>
 <br>
 
-### **Build your GitHub commit history.**
+<h1>Build Your Commit History</h1>
+
+<p>A Python script that creates <strong>real Git commits</strong> automatically — numbered, emoji-rich, and beautiful.</p>
 
 <br>
 
@@ -27,23 +29,9 @@
 
 <div align="center">
 
-## 💡 What is this?
-
-A Python script that creates **real Git commits** automatically.
-
-Each commit has a **number**, a **different emoji**, and a **beautiful message**.
-
-**Why?** To build one of the most committed repositories on GitHub.
-
-<br>
+## ✨ What you get
 
 </div>
-
----
-
-<br>
-
-## ✨ What you get
 
 <table>
 <tr>
@@ -100,7 +88,11 @@ Optionally push to GitHub after generation.
 
 <br>
 
+<div align="center">
+
 ## 🚀 How to use
+
+</div>
 
 <br>
 
@@ -114,7 +106,11 @@ python3 bulk-commit-generator.py
 
 Follow the prompts — enter commit count, choose to push, done.
 
+<br>
+
 ### Option B — GitHub Actions
+
+<br>
 
 **Step 1 — Set up secrets (one time)**
 
@@ -124,6 +120,8 @@ Go to your repo → **Settings** → **Secrets and variables** → **Actions** �
 |---|---|
 | `GIT_USER_NAME` | Your GitHub username |
 | `GIT_USER_EMAIL` | Your verified GitHub email |
+
+<br>
 
 **Step 2 — Run the workflow**
 
@@ -141,7 +139,13 @@ The script runs on GitHub's servers using your secrets for author identity.
 
 <br>
 
-## ⚙️ CLI usage (advanced)
+<div align="center">
+
+## ⚙️ CLI usage
+
+</div>
+
+<br>
 
 ```bash
 # Non-interactive — no prompts
@@ -166,7 +170,13 @@ python3 bulk-commit-generator.py --count 100
 
 <br>
 
-## ⚠️ Tips
+<div align="center">
+
+## 💡 Tips
+
+</div>
+
+<br>
 
 | | |
 |---|---|
@@ -180,9 +190,9 @@ python3 bulk-commit-generator.py --count 100
 
 <br>
 
-## 👑 Made by
-
 <div align="center">
+
+## 👑 Made by
 
 [**mkr-infinity**](https://github.com/mkr-infinity)
 
@@ -192,14 +202,8 @@ python3 bulk-commit-generator.py --count 100
 
 ⭐ **Star this repo if you like the grind** ⭐
 
-</div>
-
 <br>
 
----
-
-<br>
-
-<div align="center">
 <sub>Copyright © 2026 Mohammad Kaif Raja</sub>
+
 </div>
