@@ -9,9 +9,9 @@
 <br>
 <br>
 
-<h1>Build Your Commit History</h1>
+<h1>Most Committed</h1>
 
-<p>A Python script that creates <strong>real Git commits</strong> automatically — numbered, emoji-rich, and beautiful.</p>
+<p>A testing ground for Git commits. Push as many as you want, break things, try stuff — this repo exists for that.</p>
 
 <br>
 
@@ -29,7 +29,25 @@
 
 <div align="center">
 
-## ✨ What you get
+## 🎯 What is this?
+
+</div>
+
+<br>
+
+This repo is for **testing Git** — commit patterns, bulk pushes, workflow automation, whatever you want to try.
+
+It comes with a commit generator script that creates numbered commits with emojis and messages. Use it, modify it, or ignore it — up to you.
+
+<br>
+
+---
+
+<br>
+
+<div align="center">
+
+## ✨ What's inside
 
 </div>
 
@@ -39,21 +57,21 @@
 
 🔢 **Numbered commits**
 
-Every commit gets a unique incrementing number.
+Every commit gets a unique number.
 
 </td>
 <td>
 
 😄 **100+ emojis**
 
-Commits rotate through 100+ different emojis.
+Commits rotate through different emojis.
 
 </td>
 <td>
 
 💬 **Clean messages**
 
-Each commit has a beautiful randomized message.
+Each commit has a randomized message.
 
 </td>
 </tr>
@@ -62,21 +80,21 @@ Each commit has a beautiful randomized message.
 
 📝 **Real changes**
 
-Writes actual file changes to your repository.
+Writes actual file changes to the repo.
 
 </td>
 <td>
 
 ✅ **Interactive CLI**
 
-A guided setup — just answer the prompts.
+Guided prompts — just answer and go.
 
 </td>
 <td>
 
 📤 **Auto push**
 
-Optionally push to GitHub after generation.
+Optionally push to GitHub after.
 
 </td>
 </tr>
@@ -196,7 +214,7 @@ python3 bulk-commit-generator.py --count 100
 
 [**mkr-infinity**](https://github.com/mkr-infinity)
 
-*Building the most committed repository on GitHub.*
+*Testing Git, one commit at a time.*
 
 <br>
 
