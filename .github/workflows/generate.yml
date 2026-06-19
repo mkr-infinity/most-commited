@@ -8,11 +8,6 @@ on:
         required: true
         default: "1000"
         type: string
-      signed:
-        description: "Sign commits with GPG"
-        required: false
-        default: "false"
-        type: boolean
       push:
         description: "Push to GitHub after"
         required: false
@@ -35,8 +30,8 @@ jobs:
 
       - name: Configure git
         run: |
-          git config user.name "mohammadkaifraja"
-          git config user.email "mohammadkaifraja2@gmail.com"
+          git config user.name "${{ secrets.GIT_USER_NAME }}"
+          git config user.email "${{ secrets.GIT_USER_EMAIL }}"
           git config core.quotepath false
 
       - name: Setup Python
@@ -49,20 +44,11 @@ jobs:
 
       - name: Generate commits
         run: |
-          ARGS="--count ${{ github.event.inputs.count }}"
-          if [ "${{ github.event.inputs.signed }}" = "true" ]; then
-            ARGS="$ARGS --signed"
-          fi
+          ARGS="--count ${{ github.event.inputs.count }} --name \"${{ secrets.GIT_USER_NAME }}\" --email \"${{ secrets.GIT_USER_EMAIL }}\""
           if [ "${{ github.event.inputs.push }}" = "true" ]; then
             ARGS="$ARGS --push"
           fi
           python3 bulk-commit-generator.py $ARGS
-
-      - name: Push commits
-        if: github.event.inputs.push == 'true'
-        run: |
-          git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
-          git push origin "${{ github.ref_name }}"
 
       - name: Summary
         run: |

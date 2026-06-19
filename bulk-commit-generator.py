@@ -1230,10 +1230,12 @@ def parse_cli_args() -> dict:
         --count N / -c N   Number of commits to generate
         --signed / -s       Sign commits (default: unsigned)
         --push / -p         Auto-push to remote after generation
+        --name NAME         Git author name
+        --email EMAIL       Git author email
 
-    Returns dict with keys: count, signed, push, ci_mode.
+    Returns dict with keys: count, signed, push, ci_mode, name, email.
     """
-    args = {"count": 0, "signed": False, "push": False, "ci_mode": False}
+    args = {"count": 0, "signed": False, "push": False, "ci_mode": False, "name": None, "email": None}
     argv = sys.argv[1:]
     i = 0
     while i < len(argv):
@@ -1243,6 +1245,12 @@ def parse_cli_args() -> dict:
                 args["count"] = int(argv[i + 1])
             except ValueError:
                 pass
+            i += 2
+        elif arg == "--name" and i + 1 < len(argv):
+            args["name"] = argv[i + 1].strip('"').strip("'")
+            i += 2
+        elif arg == "--email" and i + 1 < len(argv):
+            args["email"] = argv[i + 1].strip('"').strip("'")
             i += 2
         elif arg in ("--signed", "-s"):
             args["signed"] = True
@@ -1358,32 +1366,39 @@ def main() -> None:
     display_repository_info(repo_root, branch, commit_count)
     display_preflight_checks(repo_root, branch, commit_count)
 
-    git_name = get_git_user_name(repo_root)
-    git_email = get_git_user_email(repo_root)
-    if not git_name or not git_email:
-        missing = []
-        if not git_name:
-            missing.append("user.name")
-        if not git_email:
-            missing.append("user.email")
-        panel = Panel(
-            Text.from_markup(
-                "\n[bold red]\u274c Git Identity Missing[/bold red]\n\n"
-                f"Missing Git config: [bold yellow]{', '.join(missing)}[/bold yellow]\n\n"
-                "Set your identity in this repository:\n"
-                "  [bold]git config user.name \"Your Name\"[/bold]\n"
-                "  [bold]git config user.email \"you@example.com\"[/bold]\n\n"
-                "Or configure it globally:\n"
-                "  [bold]git config --global user.name \"Your Name\"[/bold]\n"
-                "  [bold]git config --global user.email \"you@example.com\"[/bold]\n"
-            ),
-            box=box.HEAVY,
-            border_style="red",
-            padding=(1, 2),
-            width=min(BOX_WIDTH, max(72, console.width - 4)),
-        )
-        console.print(Align.center(panel))
-        sys.exit(1)
+    if cli["ci_mode"] and cli["name"] and cli["email"]:
+        git_name = cli["name"]
+        git_email = cli["email"]
+        # Set git config so commits use the provided identity
+        run_git_command(["config", "user.name", git_name], cwd=repo_root)
+        run_git_command(["config", "user.email", git_email], cwd=repo_root)
+    else:
+        git_name = get_git_user_name(repo_root)
+        git_email = get_git_user_email(repo_root)
+        if not git_name or not git_email:
+            missing = []
+            if not git_name:
+                missing.append("user.name")
+            if not git_email:
+                missing.append("user.email")
+            panel = Panel(
+                Text.from_markup(
+                    "\n[bold red]\u274c Git Identity Missing[/bold red]\n\n"
+                    f"Missing Git config: [bold yellow]{', '.join(missing)}[/bold yellow]\n\n"
+                    "Set your identity in this repository:\n"
+                    "  [bold]git config user.name \"Your Name\"[/bold]\n"
+                    "  [bold]git config user.email \"you@example.com\"[/bold]\n\n"
+                    "Or configure it globally:\n"
+                    "  [bold]git config --global user.name \"Your Name\"[/bold]\n"
+                    "  [bold]git config --global user.email \"you@example.com\"[/bold]\n"
+                ),
+                box=box.HEAVY,
+                border_style="red",
+                padding=(1, 2),
+                width=min(BOX_WIDTH, max(72, console.width - 4)),
+            )
+            console.print(Align.center(panel))
+            sys.exit(1)
 
     # ── Get Commit Count ─────────────────────────────────────────────────
     rules_panel = Panel(
