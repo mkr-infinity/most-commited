@@ -1,34 +1,84 @@
+<div align="center">
+
 # 🚀 Most Committed
 
-> My mission: build one of the most committed repositories on GitHub 🏆
+### *One repo. One mission. Infinite commits.*
 
-<p align="center">
-  <img src="https://img.shields.io/badge/status-grinding-brightgreen?style=for-the-badge" alt="status" />
-  <img src="https://img.shields.io/badge/batches-50K_commits-blue?style=for-the-badge" alt="batch size" />
-  <img src="https://img.shields.io/badge/made_by-mkr_infinity-purple?style=for-the-badge" alt="made by" />
-</p>
+<br>
 
-## ✨ What This Does
+![status](https://img.shields.io/badge/status-grinding-brightgreen?style=for-the-badge&logo=github)
+![commits](https://img.shields.io/badge/commits-growing-blue?style=for-the-badge)
+![schedule](https://img.shields.io/badge/schedule-every_6h-orange?style=for-the-badge)
+![batch](https://img.shields.io/badge/batch-50K_commits-8A2BE2?style=for-the-badge)
 
-- 🔢 Creates numbered commits
-- 😄 Adds emoji commit messages
-- ⚙️ Runs automatically with GitHub Actions
-- 🧱 Grows the repo safely in batches
+<br>
 
-## ▶️ How To Use
+</div>
 
-1. Open the **Actions** tab.
-2. Select **Generate Commits**.
-3. Click **Run workflow**.
-4. Enter a commit count, up to `50000`.
-5. Run it and watch the commits grow 🚀
+---
 
-The repo also runs automatically every 6 hours with `50000` commits per batch.
+## 📖 About
 
-## 👑 Created By
+This repository automatically generates commits with **emoji messages** and **incrementing numbers**.  
+The goal is simple — grow the commit count safely and become one of the most committed repos on GitHub.
 
-This project is created and maintained by **mkr-infinity**.
+---
 
-## ⚠️ Safe Growth
+## ✨ Features
 
-I am growing this repo in batches so my GitHub account and repository stay safe.
+| | |
+|---|---|
+| 🔢 | Every commit has a unique number |
+| 😄 | Rotates through 100+ emojis |
+| 💬 | Beautiful randomized messages |
+| 🤖 | Fully automated via GitHub Actions |
+| 🛡️ | Grows in safe batches (50K max per run) |
+
+---
+
+## 🎯 How To Use
+
+### ▶️ Manual Run
+
+| Step | Action |
+|------|--------|
+| 1 | Go to the **Actions** tab of this repo |
+| 2 | Click **Generate Commits** workflow |
+| 3 | Click **Run workflow** |
+| 4 | Enter a number (max `50000`) |
+| 5 | Click the green **Run** button |
+
+Sit back and watch the commits roll in 🚀
+
+### 🤖 Automatic Schedule
+
+The workflow runs **automatically every 6 hours** and generates **50,000 commits** each time.  
+No action needed from you.
+
+---
+
+## 💻 Run Locally
+
+```bash
+python3 generate_commits.py 100
+```
+
+Replace `100` with any number. Keep it small (< 1000) if your machine has low RAM.
+
+---
+
+## 👑 Creator
+
+**Made by [mkr-infinity](https://github.com/mkr-infinity)** — follow for more projects 🚀
+
+---
+
+<div align="center">
+
+⭐ **Star this repo if you like the grind** ⭐
+
+<br>
+
+<sub>Growing safely, one commit at a time.</sub>
+
+</div>
