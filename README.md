@@ -7,7 +7,7 @@
 <br>
 
 ![status](https://img.shields.io/badge/status-grinding-brightgreen?style=for-the-badge&logo=github)
-![commits](https://img.shields.io/badge/commits-365K-blue?style=for-the-badge)
+![commits](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mkr-infinity/most-commited/main/badge.json)
 ![script](https://img.shields.io/badge/script-bulk_commit_generator-8A2BE2?style=for-the-badge)
 
 <br>

@@ -1546,8 +1546,28 @@ def main() -> None:
         console.print(panel)
         sys.exit(1)
 
-    # ── Final Summary ─────────────────────────────────────────────────────
     new_commit_count = get_commit_count(repo_root)
+
+    # ── Update badge.json with new commit count ─────────────────────────
+    try:
+        badge_path = os.path.join(repo_root, "badge.json")
+        import json as _json
+        _json.dump(
+            {
+                "schemaVersion": 1,
+                "label": "commits",
+                "message": str(new_commit_count),
+                "color": "blue",
+                "style": "for-the-badge",
+                "cacheSeconds": 3600,
+            },
+            open(badge_path, "w", encoding="utf-8"),
+            indent=2,
+        )
+    except Exception:
+        pass
+
+    # ── Final Summary ─────────────────────────────────────────────────────
     display_summary(
         before=commit_count,
         after=new_commit_count,
