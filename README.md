@@ -17,7 +17,6 @@
 
 ![Commits](https://img.shields.io/endpoint?style=for-the-badge&url=https://raw.githubusercontent.com/mkr-infinity/most-commited/main/badge.json)
 ![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Script](https://img.shields.io/badge/Script-bulk--commit--generator-7B2FF7?style=for-the-badge&logo=terminal&logoColor=white)
 
 <br>
 
@@ -35,70 +34,9 @@
 
 <br>
 
-This repo is for **testing Git** — commit patterns, bulk pushes, workflow automation, whatever you want to try.
+A repo for **testing Git** — commit patterns, bulk pushes, workflow automation, whatever you want to try.
 
-It comes with a commit generator script that creates numbered commits with emojis and messages. Use it, modify it, or ignore it — up to you.
-
-<br>
-
----
-
-<br>
-
-<div align="center">
-
-## ✨ What's inside
-
-</div>
-
-<table>
-<tr>
-<td>
-
-🔢 **Numbered commits**
-
-Every commit gets a unique number.
-
-</td>
-<td>
-
-😄 **100+ emojis**
-
-Commits rotate through different emojis.
-
-</td>
-<td>
-
-💬 **Clean messages**
-
-Each commit has a randomized message.
-
-</td>
-</tr>
-<tr>
-<td>
-
-📝 **Real changes**
-
-Writes actual file changes to the repo.
-
-</td>
-<td>
-
-✅ **Interactive CLI**
-
-Guided prompts — just answer and go.
-
-</td>
-<td>
-
-📤 **Auto push**
-
-Optionally push to GitHub after.
-
-</td>
-</tr>
-</table>
+Comes with two commit generators — one Python script, one pure YAML workflow. Use whichever you like.
 
 <br>
 
@@ -108,79 +46,34 @@ Optionally push to GitHub after.
 
 <div align="center">
 
-## 🚀 How to use
+## ✨ Workflows
 
 </div>
 
 <br>
 
-### Option A — Run locally
+### Generate Commits
 
-```bash
-git clone https://github.com/mkr-infinity/most-commited.git
-cd most-commited
-python3 bulk-commit-generator.py
-```
+Runs the Python script. Creates numbered commits with emojis and messages. No push.
 
-Follow the prompts — enter commit count, choose to push, done.
+**Setup — secrets (one time)**
 
-<br>
-
-### Option B — GitHub Actions
-
-<br>
-
-**Step 1 — Set up secrets (one time)**
-
-Go to your repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+Go to **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
 
 | Secret | Value |
 |---|---|
 | `GIT_USER_NAME` | Your GitHub username |
 | `GIT_USER_EMAIL` | Your verified GitHub email |
 
-<br>
-
-**Step 2 — Run the workflow**
-
-1. Go to **Actions** → **Generate Commits**
-2. Click **Run workflow**
-3. Enter commit count (e.g. `1000`)
-4. Toggle push (`true` / `false`)
-5. Click **Run**
-
-The script runs on GitHub's servers using your secrets for author identity.
+Then go to **Actions** → **Generate Commits** → **Run workflow**.
 
 <br>
 
----
+### Empty Commits
 
-<br>
+Pure YAML — no Python needed. Creates empty commits with numbers, emojis, and messages directly in the workflow.
 
-<div align="center">
-
-## ⚙️ CLI usage
-
-</div>
-
-<br>
-
-```bash
-# Non-interactive — no prompts
-python3 bulk-commit-generator.py --count 1000 --push
-
-# With signed commits
-python3 bulk-commit-generator.py --count 500 --signed --push
-
-# Just generate, no push
-python3 bulk-commit-generator.py --count 100
-```
-
-| Flag | Description |
-|---|---|
-| `--count N` | Number of commits to generate |
-| `--signed` | GPG-sign each commit |
-| `--push` | Push to remote after generation |
+Go to **Actions** → **Empty Commits** → enter count → **Run**.
 
 <br>
 
@@ -198,9 +91,9 @@ python3 bulk-commit-generator.py --count 100
 
 | | |
 |---|---|
-| 🖥️ | Low RAM? Keep batches under **5,000** |
 | 📧 | Commits count if your commit email is verified on GitHub |
-| 🔁 | Run the script multiple times to grow your count |
+| 🚫 | These workflows do not push — commits stay local to the runner |
+| 🔁 | Run multiple times to grow your count |
 
 <br>
 

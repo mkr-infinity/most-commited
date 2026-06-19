@@ -8,11 +8,6 @@ on:
         required: true
         default: "1000"
         type: string
-      push:
-        description: "Push to GitHub after"
-        required: false
-        default: "true"
-        type: boolean
 
 permissions:
   contents: write
@@ -44,11 +39,7 @@ jobs:
 
       - name: Generate commits
         run: |
-          ARGS="--count ${{ github.event.inputs.count }} --name \"${{ secrets.GIT_USER_NAME }}\" --email \"${{ secrets.GIT_USER_EMAIL }}\""
-          if [ "${{ github.event.inputs.push }}" = "true" ]; then
-            ARGS="$ARGS --push"
-          fi
-          python3 bulk-commit-generator.py $ARGS
+          python3 bulk-commit-generator.py --count ${{ github.event.inputs.count }} --name "${{ secrets.GIT_USER_NAME }}" --email "${{ secrets.GIT_USER_EMAIL }}"
 
       - name: Summary
         run: |
