@@ -7,9 +7,8 @@
 <br>
 
 ![status](https://img.shields.io/badge/status-grinding-brightgreen?style=for-the-badge&logo=github)
-![commits](https://img.shields.io/badge/commits-growing-blue?style=for-the-badge)
-![schedule](https://img.shields.io/badge/schedule-every_6h-orange?style=for-the-badge)
-![batch](https://img.shields.io/badge/batch-50K_commits-8A2BE2?style=for-the-badge)
+![commits](https://img.shields.io/badge/commits-365K-blue?style=for-the-badge)
+![script](https://img.shields.io/badge/script-bulk_commit_generator-8A2BE2?style=for-the-badge)
 
 <br>
 
@@ -19,8 +18,8 @@
 
 ## 📖 About
 
-This repository automatically generates commits with **emoji messages** and **incrementing numbers**.  
-The goal is simple — grow the commit count safely and become one of the most committed repos on GitHub.
+This repository uses a Python script to generate commits with **emoji messages** and **incrementing numbers**.  
+The goal — grow the commit count safely and become one of the most committed repos on GitHub.
 
 ---
 
@@ -31,45 +30,53 @@ The goal is simple — grow the commit count safely and become one of the most c
 | 🔢 | Every commit has a unique number |
 | 😄 | Rotates through 100+ emojis |
 | 💬 | Beautiful randomized messages |
-| 🤖 | Fully automated via GitHub Actions |
-| 🛡️ | Grows in safe batches (50K max per run) |
+| 📝 | Writes real file changes per commit |
+| 🛡️ | Grows in safe batches |
 
 ---
 
-## 🎯 How To Use
+## 🚀 Usage
 
-### ▶️ Manual Run
+Open a terminal and run:
 
-| Step | Action |
-|------|--------|
-| 1 | Go to the **Actions** tab of this repo |
-| 2 | Click **Generate Commits** workflow |
-| 3 | Click **Run workflow** |
-| 4 | Enter a number (max `50000`) |
-| 5 | Click the green **Run** button |
+```bash
+python3 bulk-commit-generator.py
+```
 
-Sit back and watch the commits roll in 🚀
+The script will guide you through the process interactively.
 
-### 🤖 Automatic Schedule
+### Options
 
-The workflow runs **automatically every 6 hours** and generates **50,000 commits** each time.  
-No action needed from you.
+| Flag | Description |
+|------|-------------|
+| `count` | Number of commits to generate |
+| `auto-push` | Push to GitHub after completion |
+
+### Example
+
+```bash
+# Generate 1000 commits
+python3 bulk-commit-generator.py
+# Then enter 1000 when prompted
+```
 
 ---
 
 ## 💻 Run Locally
 
 ```bash
-python3 generate_commits.py 100
+git clone https://github.com/mkr-infinity/most-commited.git
+cd most-commited
+python3 bulk-commit-generator.py
 ```
 
-Replace `100` with any number. Keep it small (< 1000) if your machine has low RAM.
+Keep it under 5000 if your machine has low RAM.
 
 ---
 
 ## 👑 Creator
 
-**Made by [mkr-infinity](https://github.com/mkr-infinity)** — follow for more projects 🚀
+**Made by [mkr-infinity](https://github.com/mkr-infinity)**
 
 ---
 
