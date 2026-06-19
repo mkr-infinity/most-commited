@@ -2,67 +2,64 @@
 
 # 🚀 Most Committed
 
-### *One repo. One mission. Infinite commits.*
+### Why I made this
 
-<br>
+I wanted to build something big on GitHub.  
+So I made a script that keeps committing — with emojis, style, and consistency.
 
-![status](https://img.shields.io/badge/status-grinding-brightgreen?style=for-the-badge&logo=github)
+📈 **Live commit count**  
+
 ![commits](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/mkr-infinity/most-commited/main/badge.json)
-![script](https://img.shields.io/badge/script-bulk_commit_generator-8A2BE2?style=for-the-badge)
-
-<br>
-
-</div>
 
 ---
 
-## 📖 About
+## 🧠 How it works
 
-This repository uses a Python script to generate commits with **emoji messages** and **incrementing numbers**.  
-The goal — grow the commit count safely and become one of the most committed repos on GitHub.
-
----
-
-## ✨ Features
-
-| | |
-|---|---|
-| 🔢 | Every commit has a unique number |
-| 😄 | Rotates through 100+ emojis |
-| 💬 | Beautiful randomized messages |
-| 📝 | Writes real file changes per commit |
-| 🛡️ | Grows in safe batches |
+This Python script creates commits automatically.  
+Each commit has:
+- A **number** (1, 2, 3...)
+- A **different emoji** each time
+- A **random beautiful message**
+- A **real file change**
 
 ---
 
-## 🚀 Usage
+## 🪜 How to use (step by step)
 
-Open a terminal and run:
+### 1️⃣ Clone this repo
+
+```bash
+git clone https://github.com/mkr-infinity/most-commited.git
+cd most-commited
+```
+
+### 2️⃣ Run the script
 
 ```bash
 python3 bulk-commit-generator.py
 ```
 
-The script will guide you through the process interactively.
+### 3️⃣ Follow the prompts
 
-### Options
+The script will ask you:
+- How many commits to make
+- Whether to push to GitHub
 
-| Flag | Description |
-|------|-------------|
-| `count` | Number of commits to generate |
-| `auto-push` | Push to GitHub after completion |
-
-### Example
-
-```bash
-# Generate 1000 commits
-python3 bulk-commit-generator.py
-# Then enter 1000 when prompted
-```
+Just type the number and press Enter.
 
 ---
 
-## 💻 Run Locally
+## 💡 Tips for beginners
+
+| What to do | Why |
+|------------|-----|
+| Start with `100` commits | Your laptop won't slow down |
+| Say **yes** to push | Commits show on your GitHub |
+| Keep under `5000` if RAM is low | Large numbers need more memory |
+
+---
+
+## 💻 Quick start (copy-paste)
 
 ```bash
 git clone https://github.com/mkr-infinity/most-commited.git
@@ -70,22 +67,14 @@ cd most-commited
 python3 bulk-commit-generator.py
 ```
 
-Keep it under 5000 if your machine has low RAM.
+Enter `100` when asked. Say `y` to push. Done ✅
 
 ---
 
-## 👑 Creator
+## 👑 Made by
 
-**Made by [mkr-infinity](https://github.com/mkr-infinity)**
-
----
-
-<div align="center">
-
-⭐ **Star this repo if you like the grind** ⭐
+**mkr-infinity** — [GitHub](https://github.com/mkr-infinity)
 
 <br>
-
-<sub>Growing safely, one commit at a time.</sub>
 
 </div>
