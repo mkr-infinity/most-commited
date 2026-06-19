@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       count:
-        description: "Number of commits to generate"
+        description: "Number of commits"
         required: true
         default: "100"
         type: string
@@ -15,11 +15,8 @@ permissions:
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -27,58 +24,29 @@ jobs:
         run: |
           git config user.name "${{ secrets.GIT_USER_NAME }}"
           git config user.email "${{ secrets.GIT_USER_EMAIL }}"
-          git config core.quotepath false
 
       - name: Generate empty commits
         run: |
-          EMOJIS=("🎉" "✨" "🚀" "🔥" "💥" "🌟" "⭐" "💫" "⚡" "🔥"
-                  "💪" "🎯" "🏆" "👑" "💎" "🔮" "🌈" "🎨" "🛠️" "🔧"
-                  "📦" "📈" "📊" "💡" "🔍" "🎭" "🎪" "🎠" "🎡" "🎢"
-                  "🚴" "🏋️" "🤸" "⛹️" "🏄" "🧗" "🏇" "🤺" "⛷️" "🏂"
-                  "🌍" "🌎" "🌏" "🌋" "🏔️" "🏖️" "🌴" "🌲" "🌸" "🌺"
-                  "🐉" "🦅" "🦋" "🐋" "🦈" "🦚" "🦩" "🐲" "🦖" "🦕"
-                  "🍀" "🎋" "🎍" "🌾" "🍃" "🍂" "🍁" "🌿" "☘️" "🍀"
-                  "💠" "🔷" "🔶" "🔴" "🟠" "🟡" "🟢" "🔵" "🟣" "⚪"
-                  "🎵" "🎶" "🎺" "🎸" "🎹" "🎻" "🥁" "🎧" "🎤" "🎬"
-                  "🧩" "♟️" "🎲" "🎳" "🎯" "🎱" "🏓" "🥊" "🤿" "🎣")
-
-          MESSAGES=("update" "refine" "polish" "tweak" "improve"
-                    "enhance" "adjust" "optimize" "revise" "refresh"
-                    "bump" "sync" "batch" "increment" "progress"
-                    "step" "iteration" "cycle" "round" "phase"
-                    "push forward" "keep going" "steady" "momentum" "grind"
-                    "onwards" "forward" "next" "another one" "more")
-
           COUNT=${{ github.event.inputs.count }}
+          TREE=$(git rev-parse HEAD^{tree})
+          PARENT=$(git rev-parse HEAD)
+          EMOJIS=(🎉 ✨ 🚀 💥 🌟 ⭐ 💫 ⚡ 🔥 💪 🎯 🏆 👑 💎 🔮
+                  🌈 🎨 🛠️ 🔧 📦 📈 💡 🔍 🎭 🎪 🎯 🎱 🏓 🥊 🎣
+                  🌍 🌋 🏔️ 🌴 🌲 🌸 🌺 🐉 🦅 🦋 🐋 🦈 🦚 🦩 🐲
+                  🍀 🎋 🌾 🍃 🍂 🍁 🌿 🎵 🎶 🎺 🎸 🎹 🎻 🥁 🎬
+                  ♟️ 🎲 🎳 🎧 🎤 🧩 💠 🔷 🔶 🔴 🟠 🟡 🟢 🔵 🟣)
+          MESSAGES=(update refine polish tweak improve enhance adjust
+                    optimize revise refresh bump sync increment progress
+                    step iteration cycle phase forward momentum grind
+                    onwards steady push next keep going)
           EMOJI_COUNT=${#EMOJIS[@]}
           MSG_COUNT=${#MESSAGES[@]}
 
           for ((i=1; i<=COUNT; i++)); do
             EMOJI=${EMOJIS[$((RANDOM % EMOJI_COUNT))]}
             MSG=${MESSAGES[$((RANDOM % MSG_COUNT))]}
-            git commit --allow-empty -m "$EMOJI commit #$i: $MSG"
+            COMMIT=$(echo "$EMOJI commit #$i: $MSG" | git commit-tree "$TREE" -p "$PARENT")
+            PARENT=$COMMIT
           done
 
-      - name: Update badge
-        run: |
-          TOTAL=$(git rev-list --count HEAD)
-          jq -n \
-            --arg label "commits" \
-            --arg message "$TOTAL" \
-            --arg color "blue" \
-            '{schemaVersion: 1, label: $label, message: $message, color: $color, style: "for-the-badge", cacheSeconds: 3600}' \
-            > badge.json
-          git add badge.json
-          git commit -m "📊 badge: $TOTAL commits"
-
-      - name: Summary
-        run: |
-          TOTAL=$(git rev-list --count HEAD)
-          echo "## 📊 Commit Run Complete" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Commits Generated** | ${{ github.event.inputs.count }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Total Commits** | $TOTAL |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Type** | Empty (no file changes) |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Run** | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          git update-ref HEAD "$PARENT"
