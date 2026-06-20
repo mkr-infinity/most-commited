@@ -1,0 +1,113 @@
+name: Generate Empty Commits
+
+on:
+  workflow_dispatch:
+    inputs:
+      count:
+        description: Number of empty commits
+        required: true
+        default: "100"
+        type: string
+      push:
+        description: Push generated commits back to the selected branch
+        required: true
+        default: true
+        type: boolean
+      update_badge:
+        description: Update badge.json after generating commits
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          if [[ -z "${{ secrets.GIT_USER_NAME }}" || -z "${{ secrets.GIT_USER_EMAIL }}" ]]; then
+            echo "Missing required secrets: GIT_USER_NAME and GIT_USER_EMAIL" >&2
+            exit 1
+          fi
+          git config user.name "${{ secrets.GIT_USER_NAME }}"
+          git config user.email "${{ secrets.GIT_USER_EMAIL }}"
+          git config core.quotepath false
+
+      - name: Generate empty commits
+        run: |
+          COUNT="${{ github.event.inputs.count }}"
+          if ! [[ "$COUNT" =~ ^[1-9][0-9]*$ ]]; then
+            echo "count must be a positive integer" >&2
+            exit 1
+          fi
+
+          BRANCH="${{ github.ref_name }}"
+          BASE_COMMIT=$(git rev-parse HEAD)
+          BASE_COUNT=$(git rev-list --count HEAD)
+          BADGE_TOTAL=$((BASE_COUNT + COUNT + 1))
+          AUTHOR_NAME=$(git config user.name)
+          AUTHOR_EMAIL=$(git config user.email)
+          COMMIT_TIME=$(date +%s)
+          COMMIT_TZ=$(date +%z)
+          echo "TOTAL_COMMITS=$BADGE_TOTAL" >> "$GITHUB_ENV"
+
+          EMOJIS=(🎉 ✨ 🚀 💥 🌟 ⭐ 💫 ⚡ 🔥 💪 🎯 🏆 👑 💎 🔮
+                  🌈 🎨 🛠️ 🔧 📦 📈 💡 🔍 🎭 🎪 🎱 🏓 🥊 🎣
+                  🌍 🌋 🏔️ 🌴 🌲 🌸 🌺 🐉 🦅 🦋 🐋 🦈 🦚 🦩 🐲
+                  🍀 🎋 🌾 🍃 🍂 🍁 🌿 🎵 🎶 🎺 🎸 🎹 🎻 🥁 🎬
+                  ♟️ 🎲 🎳 🎧 🎤 🧩 💠 🔷 🔶 🔴 🟠 🟡 🟢 🔵 🟣)
+          MESSAGES=(update refine polish tweak improve enhance adjust
+                    optimize revise refresh bump sync increment progress
+                    step iteration cycle phase forward momentum grind
+                    onwards steady push next keep-going)
+          EMOJI_COUNT=${#EMOJIS[@]}
+          MSG_COUNT=${#MESSAGES[@]}
+
+          {
+            echo "feature done"
+            for ((i=1; i<=COUNT; i++)); do
+              EMOJI=${EMOJIS[$((RANDOM % EMOJI_COUNT))]}
+              MSG=${MESSAGES[$((RANDOM % MSG_COUNT))]}
+              MESSAGE="$EMOJI empty commit #$i: $MSG"
+
+              printf 'commit refs/heads/%s\n' "$BRANCH"
+              printf 'author %s <%s> %s %s\n' "$AUTHOR_NAME" "$AUTHOR_EMAIL" "$COMMIT_TIME" "$COMMIT_TZ"
+              printf 'committer %s <%s> %s %s\n' "$AUTHOR_NAME" "$AUTHOR_EMAIL" "$COMMIT_TIME" "$COMMIT_TZ"
+              printf 'data <<COMMIT_MESSAGE\n%s\nCOMMIT_MESSAGE\n' "$MESSAGE"
+
+              if (( i == 1 )); then
+                printf 'from %s\n' "$BASE_COMMIT"
+              fi
+              printf '\n'
+
+              if (( i % 100000 == 0 )); then
+                echo "streamed $i/$COUNT commits" >&2
+              fi
+            done
+            echo "done"
+          } | git -c gc.auto=0 fast-import --quiet
+
+          git checkout -B "$BRANCH" "refs/heads/$BRANCH"
+
+      - name: Update badge
+        if: ${{ inputs.update_badge }}
+        run: |
+          jq -n --arg label "commits" --arg message "$TOTAL_COMMITS" --arg color "blue" \
+            '{schemaVersion: 1, label: $label, message: $message, color: $color, style: "for-the-badge", cacheSeconds: 3600}' \
+            > badge.json
+          git add badge.json
+          git commit -m "📊 badge: $TOTAL_COMMITS commits"
+
+      - name: Push to GitHub
+        if: ${{ inputs.push }}
+        run: git push origin "HEAD:${{ github.ref_name }}"

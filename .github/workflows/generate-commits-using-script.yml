@@ -1,0 +1,99 @@
+name: Generate Commits Using Script
+
+on:
+  workflow_dispatch:
+    inputs:
+      count:
+        description: Number of commits to generate
+        required: true
+        default: "1000"
+        type: string
+      folder:
+        description: Target folder for activity.log
+        required: true
+        default: src
+        type: string
+      mode:
+        description: Commit signing mode
+        required: true
+        default: unsigned
+        type: choice
+        options:
+          - unsigned
+          - signed
+      push:
+        description: Push generated commits back to the selected branch
+        required: true
+        default: true
+        type: boolean
+      quiet:
+        description: Reduce workflow logs for faster large runs
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          if [[ -z "${{ secrets.GIT_USER_NAME }}" || -z "${{ secrets.GIT_USER_EMAIL }}" ]]; then
+            echo "Missing required secrets: GIT_USER_NAME and GIT_USER_EMAIL" >&2
+            exit 1
+          fi
+          git config user.name "${{ secrets.GIT_USER_NAME }}"
+          git config user.email "${{ secrets.GIT_USER_EMAIL }}"
+          git config core.quotepath false
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install rich
+
+      - name: Generate commits using script
+        run: |
+          COUNT="${{ github.event.inputs.count }}"
+          FOLDER="${{ github.event.inputs.folder }}"
+          MODE="${{ github.event.inputs.mode }}"
+          if ! [[ "$COUNT" =~ ^[1-9][0-9]*$ ]]; then
+            echo "count must be a positive integer" >&2
+            exit 1
+          fi
+          if [[ "$FOLDER" == *..* ]]; then
+            echo "folder must stay inside the repository" >&2
+            exit 1
+          fi
+
+          ARGS=(
+            --count "$COUNT"
+            --folder "$FOLDER"
+            --mode "$MODE"
+            --yes
+            --ci
+            --no-banner
+            --no-push
+          )
+
+          if [[ "${{ inputs.quiet }}" == "true" ]]; then
+            ARGS+=(--quiet)
+          fi
+
+          python3 bulk-commit-generator.py "${ARGS[@]}"
+
+      - name: Push to GitHub
+        if: ${{ inputs.push }}
+        run: git push origin "HEAD:${{ github.ref_name }}"

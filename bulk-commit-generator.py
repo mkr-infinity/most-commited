@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Bulk Commit Generator v1.0
+Bulk Commit Generator v2.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A professional, production-ready CLI tool for generating real Git commits
@@ -26,6 +26,7 @@ import sys
 import subprocess
 import random
 import time
+import argparse
 from datetime import datetime
 from typing import Optional, Tuple
 
@@ -103,7 +104,7 @@ from rich.live import Live
 #  CONSTANTS & BRANDING                                                    #
 # ═════════════════════════════════════════════════════════════════════════ #
 
-VERSION = "v1.0.0"
+VERSION = "v2.0.0"
 RELEASE_DATE = "2026-06-19"
 BUILD = "Current Release"
 AUTHOR = "Mohammad Kaif Raja"
@@ -545,11 +546,128 @@ custom_theme = Theme(
 
 console = Console(theme=custom_theme, highlight=False)
 
+
+def env_bool(name: str) -> Optional[bool]:
+    """Read a boolean environment variable if it is set."""
+    value = os.environ.get(name)
+    if value is None:
+        return None
+    return value.strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def env_int(name: str) -> Optional[int]:
+    """Read an integer environment variable if it is valid."""
+    value = os.environ.get(name)
+    if value is None or not value.strip():
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        console.print(f"[error]\u274c Invalid integer for {name}: {value}[/error]")
+        sys.exit(1)
+
+
+def is_github_actions() -> bool:
+    """Return whether the script is running inside GitHub Actions."""
+    return os.environ.get("GITHUB_ACTIONS", "").lower() == "true"
+
+
+def should_prompt(args: argparse.Namespace) -> bool:
+    """Return whether interactive prompts are safe and desired."""
+    return sys.stdin.isatty() and not args.yes and not args.ci
+
+
+def normalize_target_folder(folder: str) -> str:
+    """Normalize and validate a repository-relative target folder."""
+    target = folder.strip().replace("\\", "/").strip("/") or DEFAULT_FOLDER
+    parts = [part for part in target.split("/") if part]
+    if any(part in {".", ".."} for part in parts):
+        console.print("[error]\u274c Target folder must stay inside the repository.[/error]")
+        sys.exit(1)
+    return "/".join(parts) or DEFAULT_FOLDER
+
+
+def progress_interval(count: int, quiet: bool = False) -> int:
+    """Return how often progress should be rendered for a batch."""
+    if quiet:
+        return max(1, min(500, count // 10 or 1))
+    return 1 if count <= 1000 else max(10, count // 1000)
+
+
+def parse_args() -> argparse.Namespace:
+    """Parse CLI arguments while keeping the interactive workflow as default."""
+    parser = argparse.ArgumentParser(
+        description="Generate real Git commits by updating an activity log file.",
+    )
+    parser.add_argument(
+        "-c",
+        "--count",
+        type=int,
+        default=env_int("BCG_COUNT"),
+        help="Number of commits to generate. Env: BCG_COUNT",
+    )
+    parser.add_argument(
+        "-m",
+        "--mode",
+        choices=["signed", "unsigned"],
+        default=os.environ.get("BCG_MODE"),
+        help="Commit mode. Env: BCG_MODE=signed|unsigned",
+    )
+    parser.add_argument(
+        "-f",
+        "--folder",
+        default=os.environ.get("BCG_FOLDER"),
+        help=f"Target folder relative to repo root. Env: BCG_FOLDER. Default: {DEFAULT_FOLDER}",
+    )
+    parser.add_argument(
+        "-r",
+        "--repo",
+        default=os.environ.get("BCG_REPO"),
+        help="Path to the Git repository. Env: BCG_REPO. GitHub Actions defaults to GITHUB_WORKSPACE.",
+    )
+    parser.add_argument(
+        "--push",
+        action="store_true",
+        default=env_bool("BCG_PUSH") is True,
+        help="Push generated commits to origin after generation. Env: BCG_PUSH=true",
+    )
+    parser.add_argument(
+        "--no-push",
+        action="store_true",
+        help="Never push generated commits, even if BCG_PUSH=true.",
+    )
+    parser.add_argument(
+        "-y",
+        "--yes",
+        action="store_true",
+        default=env_bool("BCG_YES") is True,
+        help="Skip confirmations and use defaults for missing options. Env: BCG_YES=true",
+    )
+    parser.add_argument(
+        "--ci",
+        action="store_true",
+        default=is_github_actions() or env_bool("CI") is True,
+        help="Run in non-interactive CI mode.",
+    )
+    parser.add_argument(
+        "--no-banner",
+        action="store_true",
+        default=env_bool("BCG_NO_BANNER") is True,
+        help="Skip the animated startup banner. Env: BCG_NO_BANNER=true",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        default=env_bool("BCG_QUIET") is True,
+        help="Reduce progress rendering for faster CI logs. Env: BCG_QUIET=true",
+    )
+    return parser.parse_args()
+
 # ═════════════════════════════════════════════════════════════════════════ #
 #  BRAND & UI COMPONENTS                                                   #
 # ═════════════════════════════════════════════════════════════════════════ #
 
-BOX_WIDTH = 140
+BOX_WIDTH = 170
 
 
 def spin_animation(message: str, duration: float = 1.5) -> None:
@@ -591,12 +709,20 @@ def print_credit_splash() -> None:
         padding=(0, 10),
     )
 
-    social_line = Text.from_markup(
-        f"[bold white]{GITHUB_LOGO}[/bold white]  [link={GITHUB_URL}][green]{USERNAME}[/green][/link]  "
-        f"[dim]│[/dim]  "
-        f"[bold white]{INSTAGRAM_LOGO}[/bold white]  [link={INSTAGRAM_URL}][green]{INSTAGRAM_ID}[/green][/link]  "
-        f"[dim]│[/dim]  "
-        f"[dim]📦[/dim] [link={REPOSITORY_URL}][bold green]most-commited[/bold green][/link]"
+    social_links = Table.grid(padding=(0, 1))
+    social_links.add_column(justify="right", no_wrap=True)
+    social_links.add_column(justify="left", no_wrap=True)
+    social_links.add_row(
+        f"[bold white]{GITHUB_LOGO} GitHub[/bold white]",
+        f"[link={GITHUB_URL}][green]{GITHUB_URL}[/green][/link]",
+    )
+    social_links.add_row(
+        f"[bold magenta]{INSTAGRAM_LOGO} Instagram[/bold magenta]",
+        f"[link={INSTAGRAM_URL}][magenta]{INSTAGRAM_URL}[/magenta][/link]",
+    )
+    social_links.add_row(
+        "[bold yellow]📦 Repo[/bold yellow]",
+        f"[link={REPOSITORY_URL}][bold green]{REPOSITORY_URL}[/bold green][/link]",
     )
 
     chips = Table.grid(padding=(0, 1))
@@ -630,7 +756,7 @@ def print_credit_splash() -> None:
     content.add_row(Align.center(title_line))
     content.add_row(Align.center(Text("Professional Git Activity Automation", style="italic green")))
     content.add_row("")
-    content.add_row(Align.center(social_line))
+    content.add_row(Align.center(social_links))
     content.add_row("")
     content.add_row(Align.center(chips))
     content.add_row("")
@@ -749,6 +875,8 @@ def get_git_repo_root(path: Optional[str] = None) -> Optional[str]:
 def get_current_branch(path: Optional[str] = None) -> Optional[str]:
     """Get the current active branch name."""
     code, out, _ = run_git_command(["rev-parse", "--abbrev-ref", "HEAD"], cwd=path)
+    if code == 0 and out == "HEAD" and os.environ.get("GITHUB_REF_NAME"):
+        return os.environ["GITHUB_REF_NAME"]
     return out if code == 0 else None
 
 
@@ -776,6 +904,30 @@ def get_git_user_email(path: Optional[str] = None) -> Optional[str]:
     """Get the configured Git user email."""
     code, out, _ = run_git_command(["config", "user.email"], cwd=path)
     return out if code == 0 else None
+
+
+def ensure_github_actions_git_defaults(repo_root: str) -> None:
+    """Apply safe Git defaults commonly needed in GitHub Actions."""
+    if not is_github_actions():
+        return
+
+    run_git_command(["config", "--global", "--add", "safe.directory", repo_root], timeout=20)
+
+    if not get_git_user_name(repo_root):
+        run_git_command(["config", "user.name", "github-actions[bot]"], cwd=repo_root)
+    if not get_git_user_email(repo_root):
+        run_git_command(
+            ["config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"],
+            cwd=repo_root,
+        )
+
+
+def is_file_tracked(file_path: str, cwd: Optional[str] = None) -> bool:
+    """Return whether Git already tracks the file."""
+    code, _, _ = run_git_command(
+        ["ls-files", "--error-unmatch", "--", file_path], cwd=cwd, timeout=20
+    )
+    return code == 0
 
 
 def check_signing_config(path: Optional[str] = None) -> Tuple[bool, str, str]:
@@ -816,10 +968,17 @@ def stage_file(file_path: str, cwd: Optional[str] = None) -> Tuple[bool, str]:
     return True, ""
 
 
-def create_unsigned_commit(message: str, cwd: Optional[str] = None) -> Tuple[bool, str]:
+def create_unsigned_commit(
+    message: str,
+    cwd: Optional[str] = None,
+    pathspec: Optional[str] = None,
+) -> Tuple[bool, str]:
     """Create an unsigned Git commit."""
+    args = ["-c", "gc.auto=0", "commit", "--quiet", "--no-gpg-sign", "-m", message]
+    if pathspec:
+        args.extend(["--", pathspec])
     code, _, err = run_git_command(
-        ["commit", "--quiet", "--no-gpg-sign", "-m", message],
+        args,
         cwd=cwd,
         timeout=60,
         env={"GIT_TERMINAL_PROMPT": "0"},
@@ -830,15 +989,22 @@ def create_unsigned_commit(message: str, cwd: Optional[str] = None) -> Tuple[boo
     return True, ""
 
 
-def create_signed_commit(message: str, cwd: Optional[str] = None) -> Tuple[bool, str]:
+def create_signed_commit(
+    message: str,
+    cwd: Optional[str] = None,
+    pathspec: Optional[str] = None,
+) -> Tuple[bool, str]:
     """Create a signed Git commit (-S flag) with GPG agent support.
 
     Uses GIT_TERMINAL_PROMPT=0 to prevent hanging on GPG passphrase
     prompts — the GPG agent must already be running and have the key
     cached. Run 'gpg-agent --daemon' or 'export GPG_TTY=$(tty)' first.
     """
+    args = ["-c", "gc.auto=0", "commit", "--quiet", "-S", "-m", message]
+    if pathspec:
+        args.extend(["--", pathspec])
     code, _, err = run_git_command(
-        ["commit", "--quiet", "-S", "-m", message],
+        args,
         cwd=cwd,
         timeout=90,
         env={"GIT_TERMINAL_PROMPT": "0"},
@@ -860,9 +1026,10 @@ def create_signed_commit(message: str, cwd: Optional[str] = None) -> Tuple[bool,
 def push_commits(branch: str, cwd: Optional[str] = None) -> Tuple[bool, str]:
     """Push commits to the remote origin."""
     console.print("[info]Pushing commits to remote origin...[/info]")
+    refspec = f"HEAD:{branch}" if is_github_actions() else branch
     try:
         result = subprocess.run(
-            ["git", "push", "origin", branch],
+            ["git", "push", "origin", refspec],
             capture_output=True,
             text=True,
             timeout=120,
@@ -952,6 +1119,8 @@ def generate_commits(
     folder: str,
     signed: bool,
     repo_root: str,
+    show_progress: bool = True,
+    quiet: bool = False,
 ) -> Tuple[bool, int, float]:
     """Generate the requested number of commits with real file changes.
 
@@ -973,6 +1142,9 @@ def generate_commits(
 
     activity_path = os.path.join(repo_root, folder, ACTIVITY_FILE)
 
+    rel_path = os.path.join(folder, ACTIVITY_FILE)
+    can_commit_pathspec = is_file_tracked(rel_path, cwd=repo_root)
+
     # Determine commit function
     commit_fn = create_signed_commit if signed else create_unsigned_commit
     mode_str = "Signed" if signed else "Unsigned"
@@ -980,8 +1152,48 @@ def generate_commits(
     start_time = time.time()
     generated = 0
 
+    refresh_every = progress_interval(count, quiet=quiet)
+
+    def create_one_commit(commit_number: int) -> Tuple[bool, str]:
+        nonlocal can_commit_pathspec
+        emoji = random.choice(EMOJI_POOL)
+        message_text = random.choice(MESSAGE_POOL)
+        commit_message = f"{emoji} Activity Commit #{commit_number} - {message_text}"
+
+        ok, line = append_activity_line(activity_path, commit_number, emoji, message_text)
+        if not ok:
+            return False, line
+
+        if can_commit_pathspec:
+            ok_commit, err_commit = commit_fn(commit_message, cwd=repo_root, pathspec=rel_path)
+        else:
+            ok_stage, err_stage = stage_file(rel_path, cwd=repo_root)
+            if not ok_stage:
+                return False, err_stage
+            ok_commit, err_commit = commit_fn(commit_message, cwd=repo_root)
+            if ok_commit:
+                can_commit_pathspec = True
+
+        if not ok_commit:
+            return False, err_commit
+
+        return True, f"{emoji} {message_text}"
+
+    if not show_progress:
+        for i in range(count):
+            commit_number = start_number + i
+            ok, detail = create_one_commit(commit_number)
+            if not ok:
+                console.print(f"\n[error]\u274c {detail}[/error]")
+                return False, generated, time.time() - start_time
+            generated += 1
+            if generated == count or generated % refresh_every == 0:
+                console.print(f"[success]Generated {generated:,}/{count:,} commits[/success]")
+
+        elapsed = time.time() - start_time
+        return True, generated, elapsed
+
     bar_width = max(20, min(40, console.width - 50)) if console.width else 40
-    refresh_every = 1 if count <= 1000 else max(10, count // 1000)
 
     progress_columns = [
         SpinnerColumn(spinner_name="dots", style="cyan"),
@@ -1009,27 +1221,9 @@ def generate_commits(
 
         for i in range(count):
             commit_number = start_number + i
-            emoji = random.choice(EMOJI_POOL)
-            message_text = random.choice(MESSAGE_POOL)
-            commit_message = f"{emoji} Activity Commit #{commit_number} - {message_text}"
-
-            # Update activity.log
-            ok, line = append_activity_line(activity_path, commit_number, emoji, message_text)
+            ok, detail = create_one_commit(commit_number)
             if not ok:
-                console.print(f"\n[error]\u274c {line}[/error]")
-                return False, generated, time.time() - start_time
-
-            # Stage the file
-            rel_path = os.path.join(folder, ACTIVITY_FILE)
-            ok_stage, err_stage = stage_file(rel_path, cwd=repo_root)
-            if not ok_stage:
-                console.print(f"\n[error]\u274c {err_stage}[/error]")
-                return False, generated, time.time() - start_time
-
-            # Create commit
-            ok_commit, err_commit = commit_fn(commit_message, cwd=repo_root)
-            if not ok_commit:
-                console.print(f"\n[error]\u274c {err_commit}[/error]")
+                console.print(f"\n[error]\u274c {detail}[/error]")
                 return False, generated, time.time() - start_time
 
             generated += 1
@@ -1042,7 +1236,7 @@ def generate_commits(
                 advance=1,
                 description=(
                     f"[bold cyan]#{commit_number}[/bold cyan] "
-                    f"{emoji} [italic]{message_text[:42]}[/italic]"
+                    f"[italic]{detail[:46]}[/italic]"
                 ),
                 refresh=should_refresh,
             )
@@ -1223,57 +1417,14 @@ def handle_keyboard_interrupt() -> None:
 # ═════════════════════════════════════════════════════════════════════════ #
 
 
-def parse_cli_args() -> dict:
-    """Parse command-line arguments for non-interactive (CI) mode.
-
-    Supports:
-        --count N / -c N   Number of commits to generate
-        --signed / -s       Sign commits (default: unsigned)
-        --push / -p         Auto-push to remote after generation
-        --name NAME         Git author name
-        --email EMAIL       Git author email
-
-    Returns dict with keys: count, signed, push, ci_mode, name, email.
-    """
-    args = {"count": 0, "signed": False, "push": False, "ci_mode": False, "name": None, "email": None}
-    argv = sys.argv[1:]
-    i = 0
-    while i < len(argv):
-        arg = argv[i]
-        if arg in ("--count", "-c") and i + 1 < len(argv):
-            try:
-                args["count"] = int(argv[i + 1])
-            except ValueError:
-                pass
-            i += 2
-        elif arg == "--name" and i + 1 < len(argv):
-            args["name"] = argv[i + 1].strip('"').strip("'")
-            i += 2
-        elif arg == "--email" and i + 1 < len(argv):
-            args["email"] = argv[i + 1].strip('"').strip("'")
-            i += 2
-        elif arg in ("--signed", "-s"):
-            args["signed"] = True
-            i += 1
-        elif arg in ("--push", "-p"):
-            args["push"] = True
-            i += 1
-        elif arg in ("--ci", "--non-interactive"):
-            args["ci_mode"] = True
-            i += 1
-        else:
-            i += 1
-    if args["count"] > 0:
-        args["ci_mode"] = True
-    return args
-
-
 def main() -> None:
     """Main entry point for Bulk Commit Generator."""
-    cli = parse_cli_args()
+    args = parse_args()
+    interactive = should_prompt(args)
 
     # ── Display Banner ────────────────────────────────────────────────────
-    print_banner()
+    if not args.no_banner and interactive:
+        print_banner()
 
     # ── Git Availability Check ────────────────────────────────────────────
     code_check, _, _ = run_git_command(["--version"])
@@ -1295,13 +1446,31 @@ def main() -> None:
         sys.exit(1)
 
     # ── Repository Detection ──────────────────────────────────────────────
-    repo_root = get_git_repo_root()
+    requested_repo = args.repo
+    if not requested_repo and is_github_actions():
+        requested_repo = os.environ.get("GITHUB_WORKSPACE")
+
+    repo_root = None
+    if requested_repo:
+        requested_repo = os.path.abspath(os.path.expanduser(requested_repo.strip()))
+        if not os.path.isdir(requested_repo):
+            console.print(f"[error]\u274c Path does not exist: {requested_repo}[/error]")
+            sys.exit(1)
+        if not is_git_repository(requested_repo):
+            console.print(f"[error]\u274c Not a Git repository: {requested_repo}[/error]")
+            sys.exit(1)
+        repo_root = get_git_repo_root(requested_repo)
+    else:
+        repo_root = get_git_repo_root()
+
     branch = None
     commit_count = 0
 
     if not repo_root:
-        if cli["ci_mode"]:
-            console.print("[error]\u274c No Git repository detected in CI mode.[/error]")
+        if not interactive:
+            console.print(
+                "[error]\u274c No Git repository detected. Pass --repo or set BCG_REPO/GITHUB_WORKSPACE.[/error]"
+            )
             sys.exit(1)
 
         console.print("")
@@ -1348,6 +1517,7 @@ def main() -> None:
             console.print("[error]\u274c Could not determine repository root.[/error]")
             sys.exit(1)
 
+        ensure_github_actions_git_defaults(repo_root)
         branch = get_current_branch(repo_root)
         commit_count = get_commit_count(repo_root)
 
@@ -1355,8 +1525,9 @@ def main() -> None:
         spin_animation(f"Using repository: {repo_root}", 0.6)
 
     else:
-        branch = get_current_branch()
-        commit_count = get_commit_count()
+        ensure_github_actions_git_defaults(repo_root)
+        branch = get_current_branch(repo_root)
+        commit_count = get_commit_count(repo_root)
 
         if not branch:
             console.print("[error]\u274c Could not determine current branch.[/error]")
@@ -1366,58 +1537,51 @@ def main() -> None:
     display_repository_info(repo_root, branch, commit_count)
     display_preflight_checks(repo_root, branch, commit_count)
 
-    if cli["ci_mode"] and cli["name"] and cli["email"]:
-        git_name = cli["name"]
-        git_email = cli["email"]
-        # Set git config so commits use the provided identity
-        run_git_command(["config", "user.name", git_name], cwd=repo_root)
-        run_git_command(["config", "user.email", git_email], cwd=repo_root)
-    else:
-        git_name = get_git_user_name(repo_root)
-        git_email = get_git_user_email(repo_root)
-        if not git_name or not git_email:
-            missing = []
-            if not git_name:
-                missing.append("user.name")
-            if not git_email:
-                missing.append("user.email")
-            panel = Panel(
-                Text.from_markup(
-                    "\n[bold red]\u274c Git Identity Missing[/bold red]\n\n"
-                    f"Missing Git config: [bold yellow]{', '.join(missing)}[/bold yellow]\n\n"
-                    "Set your identity in this repository:\n"
-                    "  [bold]git config user.name \"Your Name\"[/bold]\n"
-                    "  [bold]git config user.email \"you@example.com\"[/bold]\n\n"
-                    "Or configure it globally:\n"
-                    "  [bold]git config --global user.name \"Your Name\"[/bold]\n"
-                    "  [bold]git config --global user.email \"you@example.com\"[/bold]\n"
-                ),
-                box=box.HEAVY,
-                border_style="red",
-                padding=(1, 2),
-                width=min(BOX_WIDTH, max(72, console.width - 4)),
-            )
-            console.print(Align.center(panel))
-            sys.exit(1)
+    git_name = get_git_user_name(repo_root)
+    git_email = get_git_user_email(repo_root)
+    if not git_name or not git_email:
+        missing = []
+        if not git_name:
+            missing.append("user.name")
+        if not git_email:
+            missing.append("user.email")
+        panel = Panel(
+            Text.from_markup(
+                "\n[bold red]\u274c Git Identity Missing[/bold red]\n\n"
+                f"Missing Git config: [bold yellow]{', '.join(missing)}[/bold yellow]\n\n"
+                "Set your identity in this repository:\n"
+                "  [bold]git config user.name \"Your Name\"[/bold]\n"
+                "  [bold]git config user.email \"you@example.com\"[/bold]\n\n"
+                "Or configure it globally:\n"
+                "  [bold]git config --global user.name \"Your Name\"[/bold]\n"
+                "  [bold]git config --global user.email \"you@example.com\"[/bold]\n"
+            ),
+            box=box.HEAVY,
+            border_style="red",
+            padding=(1, 2),
+            width=min(BOX_WIDTH, max(72, console.width - 4)),
+        )
+        console.print(Align.center(panel))
+        sys.exit(1)
 
     # ── Get Commit Count ─────────────────────────────────────────────────
-    rules_panel = Panel(
-        Text.from_markup(
-            "\n[bold cyan]\U0001f4dd Commit Count Rules[/bold cyan]\n"
-            "  \u2022 Must be a positive integer\n"
-            "  \u2022 Maximum recommended: 10,000 per session\n"
-            "  \u2022 Enter [bold yellow]0[/bold yellow] to exit\n"
-        ),
-        box=box.ROUNDED,
-        border_style="cyan",
-        padding=(1, 1),
-    )
-    console.print(rules_panel)
-    console.print("")
+    if args.count is not None:
+        desired_count = args.count
+    elif interactive:
+        rules_panel = Panel(
+            Text.from_markup(
+                "\n[bold cyan]\U0001f4dd Commit Count Rules[/bold cyan]\n"
+                "  \u2022 Must be a positive integer\n"
+                "  \u2022 Maximum recommended: 10,000 per session\n"
+                "  \u2022 Enter [bold yellow]0[/bold yellow] to exit\n"
+            ),
+            box=box.ROUNDED,
+            border_style="cyan",
+            padding=(1, 1),
+        )
+        console.print(rules_panel)
+        console.print("")
 
-    if cli["ci_mode"] and cli["count"] > 0:
-        desired_count = cli["count"]
-    else:
         try:
             desired_count = IntPrompt.ask(
                 "[bold yellow]How many commits would you like to generate?[/bold yellow]",
@@ -1426,6 +1590,9 @@ def main() -> None:
         except KeyboardInterrupt:
             handle_keyboard_interrupt()
             sys.exit(0)
+    else:
+        desired_count = 10
+        console.print("[info]No commit count provided; using CI default: 10[/info]")
 
     if desired_count <= 0:
         console.print("[info]\U0001f44b Exiting. No commits generated.[/info]")
@@ -1435,23 +1602,26 @@ def main() -> None:
         console.print("[warning]\u26a0 Large commit count detected. This may take a while...[/warning]")
 
     # ── Commit Mode Selection ─────────────────────────────────────────────
-    console.print("")
-    mode_panel = Panel(
-        Text.from_markup(
-            "\n[bold cyan]Select Commit Mode[/bold cyan]\n\n"
-            "  [bold white][1][/bold white] [green]Signed Commits[/green]  - Requires GPG/SSH signing setup\n"
-            "  [bold white][2][/bold white] [info]Unsigned Commits[/info] - Standard Git commits\n"
-        ),
-        box=box.ROUNDED,
-        border_style="cyan",
-        padding=(1, 2),
-    )
-    console.print(mode_panel)
-    console.print("")
+    if args.mode:
+        if args.mode not in {"signed", "unsigned"}:
+            console.print(f"[error]\u274c Invalid commit mode: {args.mode}[/error]")
+            sys.exit(1)
+        signed = args.mode == "signed"
+    elif interactive:
+        console.print("")
+        mode_panel = Panel(
+            Text.from_markup(
+                "\n[bold cyan]Select Commit Mode[/bold cyan]\n\n"
+                "  [bold white][1][/bold white] [green]Signed Commits[/green]  - Requires GPG/SSH signing setup\n"
+                "  [bold white][2][/bold white] [info]Unsigned Commits[/info] - Standard Git commits\n"
+            ),
+            box=box.ROUNDED,
+            border_style="cyan",
+            padding=(1, 2),
+        )
+        console.print(mode_panel)
+        console.print("")
 
-    if cli["ci_mode"]:
-        signed = cli["signed"]
-    else:
         try:
             mode_choice = Prompt.ask(
                 "[bold yellow]Select commit mode[/bold yellow]",
@@ -1463,6 +1633,8 @@ def main() -> None:
             sys.exit(0)
 
         signed = mode_choice == "1"
+    else:
+        signed = False
 
     # ── Signing Verification ─────────────────────────────────────────────
     if signed:
@@ -1500,29 +1672,29 @@ def main() -> None:
             console.print(panel)
 
     # ── Folder Selection ─────────────────────────────────────────────────
-    console.print("")
-    folder_panel = Panel(
-        Text.from_markup(
-            "\n[bold cyan]\U0001f4c1 Target Folder[/bold cyan]\n\n"
-            "  \u2022 Folder is relative to repository root\n"
-            "  \u2022 Will be created automatically if missing\n"
-            "  \u2022 Activity file: [info]activity.log[/info] inside this folder\n"
-            "  \u2022 Default: [accent]src[/accent]\n\n"
-            "Examples:\n"
-            "  [dim]src[/dim]\n"
-            "  [dim]logs/activity[/dim]\n"
-            "  [dim]data/history[/dim]\n"
-        ),
-        box=box.ROUNDED,
-        border_style="cyan",
-        padding=(1, 2),
-    )
-    console.print(folder_panel)
-    console.print("")
+    if args.folder:
+        target_folder = args.folder
+    elif interactive:
+        console.print("")
+        folder_panel = Panel(
+            Text.from_markup(
+                "\n[bold cyan]\U0001f4c1 Target Folder[/bold cyan]\n\n"
+                "  \u2022 Folder is relative to repository root\n"
+                "  \u2022 Will be created automatically if missing\n"
+                "  \u2022 Activity file: [info]activity.log[/info] inside this folder\n"
+                "  \u2022 Default: [accent]src[/accent]\n\n"
+                "Examples:\n"
+                "  [dim]src[/dim]\n"
+                "  [dim]logs/activity[/dim]\n"
+                "  [dim]data/history[/dim]\n"
+            ),
+            box=box.ROUNDED,
+            border_style="cyan",
+            padding=(1, 2),
+        )
+        console.print(folder_panel)
+        console.print("")
 
-    if cli["ci_mode"]:
-        target_folder = DEFAULT_FOLDER
-    else:
         try:
             target_folder = Prompt.ask(
                 "[bold yellow]Enter target folder[/bold yellow]",
@@ -1531,10 +1703,10 @@ def main() -> None:
         except KeyboardInterrupt:
             handle_keyboard_interrupt()
             sys.exit(0)
+    else:
+        target_folder = DEFAULT_FOLDER
 
-        target_folder = target_folder.strip().rstrip("/").lstrip("/")
-        if not target_folder:
-            target_folder = DEFAULT_FOLDER
+    target_folder = normalize_target_folder(target_folder)
 
     # ── Pre-Generation Summary ────────────────────────────────────────────
     console.print("")
@@ -1565,9 +1737,7 @@ def main() -> None:
     console.print("")
 
     # ── Confirmation ──────────────────────────────────────────────────────
-    if cli["ci_mode"]:
-        proceed = True
-    else:
+    if interactive:
         try:
             proceed = Confirm.ask(
                 "[bold yellow]\u2753 Proceed with generation?[/bold yellow]",
@@ -1576,10 +1746,12 @@ def main() -> None:
         except KeyboardInterrupt:
             handle_keyboard_interrupt()
             sys.exit(0)
+    else:
+        proceed = True
 
-        if not proceed:
-            console.print("[info]\U0001f44b Generation cancelled by user.[/info]")
-            sys.exit(0)
+    if not proceed:
+        console.print("[info]\U0001f44b Generation cancelled by user.[/info]")
+        sys.exit(0)
 
     # ── Generate Commits ─────────────────────────────────────────────────
     console.print("")
@@ -1591,6 +1763,8 @@ def main() -> None:
             folder=target_folder,
             signed=signed,
             repo_root=repo_root,
+            show_progress=not args.quiet and interactive,
+            quiet=args.quiet or not interactive,
         )
     except KeyboardInterrupt:
         handle_keyboard_interrupt()
@@ -1616,28 +1790,8 @@ def main() -> None:
         console.print(panel)
         sys.exit(1)
 
-    new_commit_count = get_commit_count(repo_root)
-
-    # ── Update badge.json with new commit count ─────────────────────────
-    try:
-        badge_path = os.path.join(repo_root, "badge.json")
-        import json as _json
-        _json.dump(
-            {
-                "schemaVersion": 1,
-                "label": "commits",
-                "message": str(new_commit_count),
-                "color": "blue",
-                "style": "for-the-badge",
-                "cacheSeconds": 3600,
-            },
-            open(badge_path, "w", encoding="utf-8"),
-            indent=2,
-        )
-    except Exception:
-        pass
-
     # ── Final Summary ─────────────────────────────────────────────────────
+    new_commit_count = get_commit_count(repo_root)
     display_summary(
         before=commit_count,
         after=new_commit_count,
@@ -1650,24 +1804,26 @@ def main() -> None:
     )
 
     # ── Push Option ───────────────────────────────────────────────────────
-    console.print("")
-    push_panel = Panel(
-        Text.from_markup(
-            "\n[bold cyan]\U0001f4e4 Push to GitHub?[/bold cyan]\n\n"
-            "Push all generated commits to the remote repository.\n"
-            f"Branch: [accent]{branch}[/accent]\n"
-            f"Remote: [info]origin[/info]\n"
-        ),
-        box=box.ROUNDED,
-        border_style="cyan",
-        padding=(1, 2),
-    )
-    console.print(push_panel)
-    console.print("")
+    if args.no_push:
+        push_choice = False
+    elif args.push:
+        push_choice = True
+    elif interactive:
+        console.print("")
+        push_panel = Panel(
+            Text.from_markup(
+                "\n[bold cyan]\U0001f4e4 Push to GitHub?[/bold cyan]\n\n"
+                "Push all generated commits to the remote repository.\n"
+                f"Branch: [accent]{branch}[/accent]\n"
+                f"Remote: [info]origin[/info]\n"
+            ),
+            box=box.ROUNDED,
+            border_style="cyan",
+            padding=(1, 2),
+        )
+        console.print(push_panel)
+        console.print("")
 
-    if cli["ci_mode"]:
-        push_choice = cli["push"]
-    else:
         try:
             push_choice = Confirm.ask(
                 "[bold yellow]\U0001f504 Push commits to GitHub?[/bold yellow]",
@@ -1675,6 +1831,8 @@ def main() -> None:
             )
         except KeyboardInterrupt:
             push_choice = False
+    else:
+        push_choice = False
 
     if push_choice:
         console.print("")
