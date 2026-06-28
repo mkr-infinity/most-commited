@@ -1,8 +1,6 @@
 name: Generate Empty Commits
 
 on:
-  schedule:
-      - cron: '0 */7 * * *'
   workflow_dispatch:
     inputs:
       count:
