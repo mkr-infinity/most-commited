@@ -9,6 +9,9 @@
 <br>
 <br>
 
+
+> Never Clone this repo.
+
 <h1>Most Committed</h1>
 
 <p>A testing ground for Git commits. Push as many as you want, break things, try stuff — this repo exists for that.</p>
