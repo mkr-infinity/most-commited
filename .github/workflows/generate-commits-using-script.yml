@@ -2,10 +2,8 @@ name: Generate Commits Using Script
 
 on:
   schedule:
-    # 09:30 UTC = 15:00 IST (3:00 PM Indian Time), runs daily
-    - cron: '30 9 * * *'
-  workflow_dispatch:   # kept, so manual runs still work
-  
+    - cron: '30 9 * * *'   # 09:30 UTC = 15:00 IST, daily
+  workflow_dispatch:
     inputs:
       count:
         description: Number of commits to generate
@@ -22,9 +20,7 @@ on:
         required: true
         default: unsigned
         type: choice
-        options:
-          - unsigned
-          - signed
+        options: [unsigned, signed]
       push:
         description: Push generated commits back to the selected branch
         required: true
@@ -39,40 +35,45 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: commit-generator     # never let two runs race on the same branch
+  cancel-in-progress: false
+
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 20
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repo (shallow — only the latest commit)
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1          # ← was 0: this alone stops the 8-min hang
+          show-progress: false
 
       - name: Configure git
+        env:
+          GIT_USER_NAME:  ${{ secrets.GIT_USER_NAME }}
+          GIT_USER_EMAIL: ${{ secrets.GIT_USER_EMAIL }}
         run: |
-          if [[ -z "${{ secrets.GIT_USER_NAME }}" || -z "${{ secrets.GIT_USER_EMAIL }}" ]]; then
+          if [[ -z "$GIT_USER_NAME" || -z "$GIT_USER_EMAIL" ]]; then
             echo "Missing required secrets: GIT_USER_NAME and GIT_USER_EMAIL" >&2
             exit 1
           fi
-          git config user.name "${{ secrets.GIT_USER_NAME }}"
-          git config user.email "${{ secrets.GIT_USER_EMAIL }}"
+          git config user.name "$GIT_USER_NAME"
+          git config user.email "$GIT_USER_EMAIL"
           git config core.quotepath false
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: python -m pip install rich
+      - name: Install rich
+        run: python3 -m pip install --quiet --disable-pip-version-check rich
 
       - name: Generate commits using script
+        env:
+          COUNT:  ${{ inputs.count  || '101' }}
+          FOLDER: ${{ inputs.folder || 'src' }}
+          MODE:   ${{ inputs.mode   || 'unsigned' }}
+          QUIET:  ${{ inputs.quiet }}
         run: |
-          COUNT="${{ github.event.inputs.count }}"
-          FOLDER="${{ github.event.inputs.folder }}"
-          MODE="${{ github.event.inputs.mode }}"
           if ! [[ "$COUNT" =~ ^[1-9][0-9]*$ ]]; then
             echo "count must be a positive integer" >&2
             exit 1
@@ -91,13 +92,10 @@ jobs:
             --no-banner
             --no-push
           )
-
-          if [[ "${{ inputs.quiet }}" == "true" ]]; then
-            ARGS+=(--quiet)
-          fi
+          [[ "$QUIET" == "true" ]] && ARGS+=(--quiet)
 
           python3 bulk-commit-generator.py "${ARGS[@]}"
 
       - name: Push to GitHub
-        if: ${{ inputs.push }}
-        run: git push origin "HEAD:${{ github.ref_name }}"
+        if: ${{ inputs.push != false }}
+        run: git push --atomic origin "HEAD:${{ github.ref_name }}"
