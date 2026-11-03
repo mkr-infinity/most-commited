@@ -1,7 +1,11 @@
 name: Generate Commits Using Script
 
 on:
-  workflow_dispatch:
+  schedule:
+    # 09:30 UTC = 15:00 IST (3:00 PM Indian Time), runs daily
+    - cron: '30 9 * * *'
+  workflow_dispatch:   # kept, so manual runs still work
+  
     inputs:
       count:
         description: Number of commits to generate
