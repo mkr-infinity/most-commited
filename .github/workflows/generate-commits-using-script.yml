@@ -6,7 +6,7 @@ on:
       count:
         description: Number of commits to generate
         required: true
-        default: "1000"
+        default: "101"
         type: string
       folder:
         description: Target folder for activity.log
