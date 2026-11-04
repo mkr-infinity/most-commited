@@ -97,5 +97,6 @@ jobs:
           python3 bulk-commit-generator.py "${ARGS[@]}"
 
       - name: Push to GitHub
-        if: ${{ inputs.push != false }}
-        run: git push --atomic origin "HEAD:${{ github.ref_name }}"
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
+        run: |
+          git push --atomic origin "HEAD:${{ github.ref_name }}"
