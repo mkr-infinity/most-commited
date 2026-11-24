@@ -17125,3 +17125,4 @@ Commit #2 | 2026-11-24 09:34:21 | ♻️ | Improved seeding logic
 Commit #3 | 2026-11-24 09:34:21 | 🌜 | Added pagination support
 Commit #4 | 2026-11-24 09:34:21 | 📎 | Enhanced test configuration
 Commit #5 | 2026-11-24 09:34:21 | 🌻 | Updated package metadata
+Commit #6 | 2026-11-24 09:34:21 | ✅ | Tree-shook unused exports
