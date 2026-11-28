@@ -138,12 +138,6 @@ jobs:
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
           echo "Selected commit count: $COUNT"
 
-          {
-            echo "## Commit Generation"
-            echo "- Selection mode: $COUNT_MODE"
-            echo "- Selected commits: $COUNT"
-          } >> "$GITHUB_STEP_SUMMARY"
-
       - name: Generate commits using script
         env:
           COUNT: ${{ steps.commit_count.outputs.count }}
