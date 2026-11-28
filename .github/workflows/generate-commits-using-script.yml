@@ -2,7 +2,7 @@ name: Generate Commits Using Script
 
 on:
   schedule:
-    - cron: '30 9 * * *'   # 09:30 UTC = 15:00 IST, daily
+    - cron: '30 8 * * *'   # 09:30 UTC = 15:00 IST, daily
   workflow_dispatch:
     inputs:
       count:
@@ -42,7 +42,7 @@ concurrency:
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 80
 
     steps:
       - name: Checkout repo (shallow — only the latest commit)
