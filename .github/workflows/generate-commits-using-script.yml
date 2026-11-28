@@ -42,7 +42,7 @@ concurrency:
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 80
+    timeout-minutes: 240
 
     steps:
       - name: Checkout repo (shallow — only the latest commit)
