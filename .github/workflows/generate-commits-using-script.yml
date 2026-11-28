@@ -1,31 +1,56 @@
+
 name: Generate Commits Using Script
 
 on:
   schedule:
-    - cron: '30 8 * * *'   # 09:30 UTC = 15:00 IST, daily
+    - cron: '30 8 * * *' # Daily at 2:00 PM IST
+
   workflow_dispatch:
     inputs:
+      count_mode:
+        description: Commit count selection mode
+        required: true
+        default: random
+        type: choice
+        options: [random, fixed]
+
       count:
-        description: Number of commits to generate
+        description: Number of commits (fixed mode)
         required: true
         default: "101"
         type: string
+
+      min_count:
+        description: Minimum commits (random mode)
+        required: true
+        default: "4"
+        type: string
+
+      max_count:
+        description: Maximum commits (random mode)
+        required: true
+        default: "150"
+        type: string
+
       folder:
         description: Target folder for activity.log
         required: true
         default: src
         type: string
+
       mode:
         description: Commit signing mode
         required: true
         default: unsigned
         type: choice
         options: [unsigned, signed]
+
       push:
         description: Push generated commits back to the selected branch
         required: true
         default: true
         type: boolean
+
       quiet:
         description: Reduce workflow logs for faster large runs
         required: true
@@ -36,7 +61,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: commit-generator     # never let two runs race on the same branch
+  group: commit-generator
   cancel-in-progress: false
 
 jobs:
@@ -45,21 +70,22 @@ jobs:
     timeout-minutes: 240
 
     steps:
-      - name: Checkout repo (shallow — only the latest commit)
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1          # ← was 0: this alone stops the 8-min hang
+          fetch-depth: 1
           show-progress: false
 
       - name: Configure git
         env:
-          GIT_USER_NAME:  ${{ secrets.GIT_USER_NAME }}
+          GIT_USER_NAME: ${{ secrets.GIT_USER_NAME }}
           GIT_USER_EMAIL: ${{ secrets.GIT_USER_EMAIL }}
         run: |
           if [[ -z "$GIT_USER_NAME" || -z "$GIT_USER_EMAIL" ]]; then
             echo "Missing required secrets: GIT_USER_NAME and GIT_USER_EMAIL" >&2
             exit 1
           fi
+
           git config user.name "$GIT_USER_NAME"
           git config user.email "$GIT_USER_EMAIL"
           git config core.quotepath false
@@ -67,21 +93,79 @@ jobs:
       - name: Install rich
         run: python3 -m pip install --quiet --disable-pip-version-check rich
 
+      - name: Determine commit count
+        id: commit_count
+        env:
+          COUNT_MODE: ${{ inputs.count_mode || 'random' }}
+          FIXED_COUNT: ${{ inputs.count || '101' }}
+          MIN_COUNT: ${{ inputs.min_count || '4' }}
+          MAX_COUNT: ${{ inputs.max_count || '150' }}
+        run: |
+          COUNT=$(python3 - <<'PY'
+          import os
+          import random
+          import sys
+
+          def positive_integer(name):
+              value = os.environ[name]
+
+              if not value.isascii() or not value.isdigit() or int(value) < 1:
+                  sys.exit(f"{name} must be a positive integer")
+
+              return int(value)
+
+          mode = os.environ["COUNT_MODE"]
+
+          if mode == "fixed":
+              count = positive_integer("FIXED_COUNT")
+
+          elif mode == "random":
+              minimum = positive_integer("MIN_COUNT")
+              maximum = positive_integer("MAX_COUNT")
+
+              if minimum > maximum:
+                  sys.exit("Minimum cannot exceed maximum")
+
+              count = random.randint(minimum, maximum)
+
+          else:
+              sys.exit("Invalid count mode")
+
+          print(count)
+          PY
+          ) || exit 1
+
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "Selected commit count: $COUNT"
+
+          {
+            echo "## Commit Generation"
+            echo "- Selection mode: $COUNT_MODE"
+            echo "- Selected commits: $COUNT"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Generate commits using script
         env:
-          COUNT:  ${{ inputs.count  || '101' }}
+          COUNT: ${{ steps.commit_count.outputs.count }}
           FOLDER: ${{ inputs.folder || 'src' }}
-          MODE:   ${{ inputs.mode   || 'unsigned' }}
-          QUIET:  ${{ inputs.quiet }}
+          MODE: ${{ inputs.mode || 'unsigned' }}
+          QUIET: ${{ github.event_name == 'schedule' || inputs.quiet }}
         run: |
           if ! [[ "$COUNT" =~ ^[1-9][0-9]*$ ]]; then
             echo "count must be a positive integer" >&2
             exit 1
           fi
-          if [[ "$FOLDER" == *..* ]]; then
-            echo "folder must stay inside the repository" >&2
-            exit 1
-          fi
+
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          root = Path.cwd().resolve()
+          folder = Path(os.environ["FOLDER"])
+
+          if folder.is_absolute() or not (root / folder).resolve().is_relative_to(root):
+              raise SystemExit("Folder must stay inside the repository")
+          PY
 
           ARGS=(
             --count "$COUNT"
@@ -92,11 +176,14 @@ jobs:
             --no-banner
             --no-push
           )
+
           [[ "$QUIET" == "true" ]] && ARGS+=(--quiet)
 
           python3 bulk-commit-generator.py "${ARGS[@]}"
 
       - name: Push to GitHub
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
+        env:
+          TARGET_BRANCH: ${{ github.ref_name }}
         run: |
-          git push --atomic origin "HEAD:${{ github.ref_name }}"
+          git push --atomic origin "HEAD:$TARGET_BRANCH"
